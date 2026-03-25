@@ -110,8 +110,8 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
               <p>{settings.treasurerName}</p>
             </div>
             <div>
-              <p className="font-semibold uppercase mb-1">Kế toán trưởng</p>
-              <p>{settings.chiefAccountantName}</p>
+              <p className="font-semibold uppercase mb-1">Phụ trách kế toán</p>
+              <p>{settings.accountantName}</p>
             </div>
             <div>
               <p className="font-semibold uppercase mb-1">Lãnh đạo</p>

@@ -47,7 +47,7 @@ export function PaymentRequestForm({ onSaved }: PaymentRequestFormProps) {
       personName: form.requesterName,
       department: form.department,
       accountCode: '',
-      approver: settings.unionLeaderName,
+      approver: settings.unionGroups[0]?.leaderName || '',
       attachments: parseInt(form.attachments) || 0,
       bankAccount: form.bankAccount,
       bankAccountName: form.bankAccountName,

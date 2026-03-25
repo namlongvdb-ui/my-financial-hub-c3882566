@@ -41,7 +41,7 @@ export function VisitVoucherForm({ onSaved }: VisitVoucherFormProps) {
       personName: form.recipientName,
       department: form.visitorDepartment,
       accountCode: '',
-      approver: settings.unionLeaderName,
+      approver: settings.unionGroups[0]?.leaderName || '',
       attachments: 0,
       recipientName: form.recipientName,
       reason: form.reason,
