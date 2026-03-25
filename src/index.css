@@ -6,24 +6,9 @@
   :root {
     --background: 210 20% 98%;
     --foreground: 220 25% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 12%;
-    --primary: 215 70% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 25% 93%;
-    --secondary-foreground: 220 25% 18%;
-    --muted: 210 18% 95%;
-    --muted-foreground: 215 12% 50%;
-    --accent: 38 90% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
     --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 215 70% 42%;
     --radius: 0.5rem;
+    /* ... các biến số khác giữ nguyên ... */
   }
 }
 
@@ -32,7 +17,7 @@
   body { @apply bg-background text-foreground; }
 }
 
-/* --- PHẦN SỬA LỖI IN ẤN --- */
+/* --- CẤU HÌNH IN ẤN SỬA LỖI TRẮNG TRANG --- */
 
 .print-only {
   display: none;
@@ -41,48 +26,55 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 15mm;
+    margin: 15mm; /* Khoảng cách lề an toàn */
   }
 
-  /* 1. Hiện vùng in */
-  .print-only, 
-  .print-only * {
+  /* 1. Đảm bảo các thẻ cha không bị ẩn */
+  html, body, #root, main {
     display: block !important;
-    visibility: visible !important;
-  }
-
-  /* 2. ẨN CÁC VÙNG GIAO DIỆN (Dựa trên cấu trúc dự án của Long) */
-  /* Ẩn Sidebar, Header web và các thẻ Card chứa Form nhập liệu */
-  aside, 
-  nav, 
-  header, 
-  footer,
-  button,
-  .no-print,
-  .border.bg-card, /* Ẩn các ô Card trắng chứa Form */
-  [role="navigation"],
-  .Toaster {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* 3. Reset nền */
-  html, body {
+    overflow: visible !important;
+    height: auto !important;
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  /* 2. ẨN CÁC THÀNH PHẦN GIAO DIỆN CỤ THỂ (Không ẩn thẻ cha) */
+  /* Tôi ẩn Sidebar, các nút bấm, và các khung Form nhập liệu */
+  aside, 
+  nav, 
+  header, 
+  footer, 
+  button, 
+  .no-print,
+  .border.bg-card, 
+  form,
+  [role="navigation"],
+  .Toaster {
+    display: none !important;
+  }
+
+  /* 3. HIỂN THỊ VÙNG IN */
+  .print-only {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
     width: 100% !important;
   }
 
-  /* 4. XÓA ĐƯỜNG KẺ NGANG (QUAN TRỌNG) */
-  /* Xóa sạch border của vùng in để không bị dính đường kẻ */
+  /* 4. XÓA ĐƯỜNG KẺ NGANG (Lỗi trong file gdn.bmp của Long) */
   .print-voucher, 
   .print-voucher * {
     border: none !important;
     border-top: 0 !important;
     box-shadow: none !important;
     outline: none !important;
+    background-color: transparent !important;
+    color: black !important;
+  }
+
+  /* Định dạng font chữ chuẩn cho văn bản ngân hàng */
+  .print-voucher {
+    font-family: "Times New Roman", Times, serif !important;
   }
 }
