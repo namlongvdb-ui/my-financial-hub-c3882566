@@ -65,6 +65,13 @@ export function deleteTransaction(id: string) {
   saveTransactions(transactions);
 }
 
+export function updateTransaction(id: string, updates: Partial<Omit<Transaction, 'id' | 'createdAt'>>) {
+  const transactions = getTransactions().map(t =>
+    t.id === id ? { ...t, ...updates } : t
+  );
+  saveTransactions(transactions);
+}
+
 export function getNextVoucherNo(type: 'thu' | 'chi' | 'tham-hoi' | 'de-nghi'): string {
   const transactions = getTransactions();
   const prefixMap = { thu: 'PT', chi: 'PC', 'tham-hoi': 'TH', 'de-nghi': 'DN' };

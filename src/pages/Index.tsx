@@ -27,7 +27,7 @@ const Index = () => {
         {currentView === 'phieu-tham-hoi' && <VisitVoucherForm onSaved={handleSaved} />}
         {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm onSaved={handleSaved} />}
         {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
-        {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} />}
+        {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} onSaved={handleSaved} />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
       </main>
     </div>
