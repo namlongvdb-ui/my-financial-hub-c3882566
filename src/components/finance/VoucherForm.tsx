@@ -1,0 +1,220 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { addTransaction, updateTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { Transaction } from '@/types/finance';
+import { FileText, Save, Printer, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { PrintVoucher } from './PrintVoucher';
+import { VoucherList } from './VoucherList';
+
+interface VoucherFormProps {
+  type: 'thu' | 'chi';
+  onSaved?: () => void;
+  refreshKey?: number;
+}
+
+const emptyForm = (type: 'thu' | 'chi', settings: ReturnType<typeof getOrgSettings>) => ({
+  date: new Date().toISOString().split('T')[0],
+  voucherNo: getNextVoucherNo(type),
+  amount: '',
+  description: '',
+  personName: '',
+  department: '',
+  accountCode: settings.defaultAccountCode,
+  approver: settings.leaderName,
+  attachments: 1,
+});
+
+export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
+  const title = type === 'thu' ? 'PHIẾU THU' : 'PHIẾU CHI';
+  const settings = getOrgSettings();
+
+  const [form, setForm] = useState(() => emptyForm(type, settings));
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+
+  const amount = parseInt(form.amount) || 0;
+
+  // Reset form when type changes
+  useEffect(() => {
+    setForm(emptyForm(type, settings));
+    setEditingTx(null);
+  }, [type]);
+
+  const handleSelectForEdit = (tx: Transaction) => {
+    setEditingTx(tx);
+    setForm({
+      date: tx.date,
+      voucherNo: tx.voucherNo,
+      amount: tx.amount.toString(),
+      description: tx.description,
+      personName: tx.personName,
+      department: tx.department,
+      accountCode: tx.accountCode,
+      approver: tx.approver,
+      attachments: tx.attachments,
+    });
+    // Scroll to top of form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTx(null);
+    setForm(emptyForm(type, settings));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.personName || !form.description || amount <= 0) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    if (editingTx) {
+      // Update existing transaction
+      updateTransaction(editingTx.id, {
+        date: form.date,
+        voucherNo: form.voucherNo,
+        type,
+        amount,
+        description: form.description,
+        personName: form.personName,
+        department: form.department,
+        accountCode: form.accountCode,
+        approver: form.approver,
+        attachments: form.attachments,
+      });
+      toast.success(`${title} ${form.voucherNo} đã được cập nhật`);
+      setEditingTx(null);
+    } else {
+      // Add new transaction
+      addTransaction({
+        date: form.date,
+        voucherNo: form.voucherNo,
+        type,
+        amount,
+        description: form.description,
+        personName: form.personName,
+        department: form.department,
+        accountCode: form.accountCode,
+        approver: form.approver,
+        attachments: form.attachments,
+      });
+      toast.success(`${title} ${form.voucherNo} đã được lưu`);
+    }
+
+    setForm(emptyForm(type, settings));
+    onSaved?.();
+  };
+
+  return (
+    <>
+      <Card className="max-w-3xl mx-auto border-border shadow-lg no-print">
+        <CardHeader className={`border-b border-border relative ${editingTx ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-primary/5'}`}>
+          <div className="flex items-center gap-2 absolute right-4 top-4">
+            {editingTx && (
+              <Button type="button" variant="outline" size="sm" onClick={handleCancelEdit}>
+                <X className="h-4 w-4 mr-1" /> Hủy sửa
+              </Button>
+            )}
+            <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-1" /> In phiếu
+            </Button>
+          </div>
+          <div className="text-center">
+            <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
+              <FileText className="h-6 w-6" />
+              {editingTx ? `SỬA ${title}` : title}
+            </CardTitle>
+            {editingTx && (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                Đang sửa phiếu {editingTx.voucherNo}
+              </p>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-muted-foreground text-xs">Ngày</Label>
+                <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">Số CT</Label>
+                <Input value={form.voucherNo} onChange={e => setForm({ ...form, voucherNo: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">
+                  Mã TK ({type === 'thu' ? 'Có' : 'Nợ'})
+                </Label>
+                <Input value={form.accountCode} onChange={e => setForm({ ...form, accountCode: e.target.value })} placeholder={settings.defaultAccountCode} />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs">
+                Họ và tên người {type === 'thu' ? 'nộp' : 'nhận'} tiền
+              </Label>
+              <Input value={form.personName} onChange={e => setForm({ ...form, personName: e.target.value })} placeholder="Nhập họ tên..." />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs">Đơn vị</Label>
+              <Input value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} placeholder="Tổ CĐ BP..." />
+            </div>
+
+            <div>
+              <Label className="text-muted-foreground text-xs">Nội dung</Label>
+              <Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Nội dung chi tiết..." rows={3} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-muted-foreground text-xs">Số tiền (VNĐ)</Label>
+                <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="text-lg font-semibold" />
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">Người duyệt</Label>
+                <Input value={form.approver} onChange={e => setForm({ ...form, approver: e.target.value })} />
+              </div>
+            </div>
+
+            {amount > 0 && (
+              <div className="bg-muted/50 rounded-md p-3 border border-border">
+                <p className="text-sm text-muted-foreground">Viết bằng chữ:</p>
+                <p className="font-medium text-foreground italic">{numberToVietnameseWords(amount)}</p>
+              </div>
+            )}
+
+            <Button type="submit" className={`w-full ${editingTx ? 'bg-amber-600 hover:bg-amber-700' : ''}`} size="lg">
+              <Save className="h-4 w-4 mr-2" /> {editingTx ? `Cập nhật ${title}` : `Lưu ${title}`}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="print-only hidden">
+        <PrintVoucher
+          type={type}
+          data={{
+            date: form.date,
+            voucherNo: form.voucherNo,
+            amount,
+            description: form.description,
+            personName: form.personName,
+            department: form.department,
+            accountCode: form.accountCode,
+            approver: form.approver,
+            attachments: form.attachments,
+          }}
+        />
+      </div>
+
+      <VoucherList type={type} onChanged={onSaved} refreshKey={refreshKey} onSelectForEdit={handleSelectForEdit} />
+    </>
+  );
+}
