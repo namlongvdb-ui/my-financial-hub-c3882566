@@ -102,11 +102,16 @@ All colors MUST be HSL.
   }
 }
 
+.print-only {
+  display: none;
+}
+
 @media print {
   body {
     background: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    color: #000 !important;
   }
 
   .no-print {
@@ -126,5 +131,9 @@ All colors MUST be HSL.
     box-shadow: none !important;
     border: none !important;
     max-width: 100% !important;
+  }
+
+  @page {
+    margin: 10mm;
   }
 }
