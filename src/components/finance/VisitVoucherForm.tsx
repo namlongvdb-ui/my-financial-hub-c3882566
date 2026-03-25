@@ -4,15 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
-import { Heart, Printer } from 'lucide-react';
+import { addTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { Heart, Printer, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
 
-export function VisitVoucherForm() {
+interface VisitVoucherFormProps {
+  onSaved?: () => void;
+}
+
+export function VisitVoucherForm({ onSaved }: VisitVoucherFormProps) {
   const settings = getOrgSettings();
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    visitorName: '',
+    voucherNo: getNextVoucherNo('tham-hoi'),
     visitorDepartment: 'Tổ CĐ Kế toán – Hành chính',
     recipientName: '',
     reason: '',
@@ -20,6 +25,37 @@ export function VisitVoucherForm() {
   });
 
   const amount = parseInt(form.amount) || 0;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.recipientName || !form.reason || amount <= 0) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+    addTransaction({
+      date: form.date,
+      voucherNo: form.voucherNo,
+      type: 'tham-hoi',
+      amount,
+      description: form.reason,
+      personName: form.recipientName,
+      department: form.visitorDepartment,
+      accountCode: '',
+      approver: settings.unionLeaderName,
+      attachments: 0,
+      recipientName: form.recipientName,
+      reason: form.reason,
+    });
+    toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được lưu`);
+    setForm({
+      ...form,
+      voucherNo: getNextVoucherNo('tham-hoi'),
+      recipientName: '',
+      reason: '',
+      amount: '',
+    });
+    onSaved?.();
+  };
 
   return (
     <>
@@ -38,10 +74,16 @@ export function VisitVoucherForm() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-5">
-            <div>
-              <Label className="text-muted-foreground text-xs">Ngày</Label>
-              <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-muted-foreground text-xs">Ngày</Label>
+                <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs">Số CT</Label>
+                <Input value={form.voucherNo} onChange={e => setForm({ ...form, voucherNo: e.target.value })} />
+              </div>
             </div>
 
             <div>
@@ -70,7 +112,11 @@ export function VisitVoucherForm() {
                 <p className="font-medium text-foreground italic">{numberToVietnameseWords(amount)}</p>
               </div>
             )}
-          </div>
+
+            <Button type="submit" className="w-full" size="lg">
+              <Save className="h-4 w-4 mr-2" /> Lưu Phiếu Thăm Hỏi
+            </Button>
+          </form>
         </CardContent>
       </Card>
 

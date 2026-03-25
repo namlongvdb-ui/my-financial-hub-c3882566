@@ -4,14 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
-import { FileText, Printer } from 'lucide-react';
+import { addTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { FileText, Printer, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { PrintPaymentRequest } from './PrintPaymentRequest';
 
-export function PaymentRequestForm() {
+interface PaymentRequestFormProps {
+  onSaved?: () => void;
+}
+
+export function PaymentRequestForm({ onSaved }: PaymentRequestFormProps) {
   const settings = getOrgSettings();
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
+    voucherNo: getNextVoucherNo('de-nghi'),
     requestNo: '',
     requesterName: '',
     department: 'Tổ công đoàn bộ phận KT – HC, Phòng GD Cao Bằng.',
@@ -25,6 +31,43 @@ export function PaymentRequestForm() {
   });
 
   const amount = parseInt(form.amount) || 0;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.requesterName || !form.content || amount <= 0) {
+      toast.error('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+    addTransaction({
+      date: form.date,
+      voucherNo: form.voucherNo,
+      type: 'de-nghi',
+      amount,
+      description: form.content,
+      personName: form.requesterName,
+      department: form.department,
+      accountCode: '',
+      approver: settings.unionLeaderName,
+      attachments: parseInt(form.attachments) || 0,
+      bankAccount: form.bankAccount,
+      bankAccountName: form.bankAccountName,
+      bankName: form.bankName,
+      times: form.times,
+    });
+    toast.success(`Đề nghị thanh toán ${form.voucherNo} đã được lưu`);
+    setForm({
+      ...form,
+      voucherNo: getNextVoucherNo('de-nghi'),
+      requestNo: '',
+      requesterName: '',
+      content: '',
+      amount: '',
+      bankAccount: '',
+      bankAccountName: '',
+      attachments: '',
+    });
+    onSaved?.();
+  };
 
   return (
     <>
@@ -43,15 +86,15 @@ export function PaymentRequestForm() {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-muted-foreground text-xs">Ngày</Label>
                 <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
               </div>
               <div>
-                <Label className="text-muted-foreground text-xs">Số</Label>
-                <Input value={form.requestNo} onChange={e => setForm({ ...form, requestNo: e.target.value })} placeholder="Số..." />
+                <Label className="text-muted-foreground text-xs">Số CT</Label>
+                <Input value={form.voucherNo} onChange={e => setForm({ ...form, voucherNo: e.target.value })} />
               </div>
             </div>
 
@@ -110,7 +153,11 @@ export function PaymentRequestForm() {
               <Label className="text-muted-foreground text-xs">Kèm theo chứng từ gốc</Label>
               <Input value={form.attachments} onChange={e => setForm({ ...form, attachments: e.target.value })} placeholder="Số chứng từ gốc..." />
             </div>
-          </div>
+
+            <Button type="submit" className="w-full" size="lg">
+              <Save className="h-4 w-4 mr-2" /> Lưu Đề Nghị Thanh Toán
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
