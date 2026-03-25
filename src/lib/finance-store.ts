@@ -1,0 +1,132 @@
+import { Transaction } from '@/types/finance';
+
+const STORAGE_KEY = 'union-finance-transactions';
+const BALANCE_KEY = 'union-finance-opening-balance';
+
+export function getOpeningBalance(): number {
+  const stored = localStorage.getItem(BALANCE_KEY);
+  return stored ? JSON.parse(stored) : 50000000;
+}
+
+export function setOpeningBalance(balance: number) {
+  localStorage.setItem(BALANCE_KEY, JSON.stringify(balance));
+}
+
+export function getTransactions(): Transaction[] {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored ? JSON.parse(stored) : getSampleData();
+}
+
+export function saveTransactions(transactions: Transaction[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+}
+
+export function addTransaction(tx: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
+  const transactions = getTransactions();
+  const newTx: Transaction = {
+    ...tx,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+  };
+  transactions.push(newTx);
+  saveTransactions(transactions);
+  return newTx;
+}
+
+export function deleteTransaction(id: string) {
+  const transactions = getTransactions().filter(t => t.id !== id);
+  saveTransactions(transactions);
+}
+
+export function getNextVoucherNo(type: 'thu' | 'chi'): string {
+  const transactions = getTransactions();
+  const prefix = type === 'thu' ? 'PT' : 'PC';
+  const existing = transactions.filter(t => t.type === type);
+  const nextNum = existing.length + 1;
+  return `${prefix}${String(nextNum).padStart(3, '0')}`;
+}
+
+export function numberToVietnameseWords(num: number): string {
+  if (num === 0) return 'Không đồng';
+  const units = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+  const groups = ['', 'nghìn', 'triệu', 'tỷ'];
+
+  function readThreeDigits(n: number): string {
+    const h = Math.floor(n / 100);
+    const t = Math.floor((n % 100) / 10);
+    const u = n % 10;
+    let result = '';
+    if (h > 0) result += units[h] + ' trăm ';
+    if (t > 1) result += units[t] + ' mươi ';
+    else if (t === 1) result += 'mười ';
+    else if (t === 0 && h > 0 && u > 0) result += 'lẻ ';
+    if (u > 0) {
+      if (t > 1 && u === 1) result += 'mốt';
+      else if (t >= 1 && u === 5) result += 'lăm';
+      else result += units[u];
+    }
+    return result.trim();
+  }
+
+  const parts: string[] = [];
+  let remaining = num;
+  let groupIdx = 0;
+  while (remaining > 0) {
+    const chunk = remaining % 1000;
+    if (chunk > 0) {
+      parts.unshift(readThreeDigits(chunk) + ' ' + groups[groupIdx]);
+    }
+    remaining = Math.floor(remaining / 1000);
+    groupIdx++;
+  }
+
+  const text = parts.join(' ').trim();
+  return text.charAt(0).toUpperCase() + text.slice(1) + ' đồng';
+}
+
+function getSampleData(): Transaction[] {
+  return [
+    {
+      id: '1',
+      date: '2026-01-22',
+      voucherNo: 'PC001',
+      type: 'chi',
+      amount: 200000,
+      description: 'Thăm bổ sung cho vay bù đắp khó khăn do bệnh suy hô hấp cấp',
+      personName: 'Trần Nam Long',
+      department: 'Tổ CĐ BP Kế toán - Hành chính',
+      accountCode: '111',
+      approver: 'Phí Quang Chiến',
+      attachments: 1,
+      createdAt: '2026-01-22T00:00:00Z',
+    },
+    {
+      id: '2',
+      date: '2026-01-22',
+      voucherNo: 'PC002',
+      type: 'chi',
+      amount: 200000,
+      description: 'Phan Văn Bình bị áp xe da nhọt và cụm nhọt ở mặt phải điều trị tại bệnh viện',
+      personName: 'Trần Nam Long',
+      department: 'Tổ CĐ BP Kế toán - Hành chính',
+      accountCode: '112',
+      approver: 'Phí Quang Chiến',
+      attachments: 1,
+      createdAt: '2026-01-22T00:00:00Z',
+    },
+    {
+      id: '3',
+      date: '2026-03-13',
+      voucherNo: 'PC003',
+      type: 'chi',
+      amount: 2584400,
+      description: 'Thanh toán chi phí tổ chức ngày Quốc tế Phụ Nữ 08/03',
+      personName: 'Trần Nam Long',
+      department: 'Tổ CĐ BP Kế toán - Hành chính',
+      accountCode: '111',
+      approver: 'Phí Quang Chiến',
+      attachments: 1,
+      createdAt: '2026-03-13T00:00:00Z',
+    },
+  ];
+}
