@@ -31,16 +31,25 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
   const labelStyle: React.CSSProperties = { margin: '6px 0', lineHeight: '1.7' };
 
   return (
-    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '14px', color: '#000', padding: '30px 45px', maxWidth: '720px', margin: '0 auto' }}>
-      {/* Header */}
+    <div className="print-voucher" style={{ 
+      fontFamily: 'Times New Roman, serif', 
+      fontSize: '14px', 
+      color: '#000', 
+      padding: '10px 45px 30px', // Giảm padding trên từ 30px xuống 10px để xóa khoảng trống
+      maxWidth: '720px', 
+      margin: '0 auto' 
+    }}>
+      {/* Header - Đã giữ lại Mẫu số và xóa các thành phần thừa */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>PHÒNG GD CAO BẰNG</p>
         </div>
-        <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
-       </div>
+        <div style={{ textAlign: 'right', fontSize: '12px' }}>
+          <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
+        </div>
+      </div>
 
       {/* Title */}
       <div style={{ textAlign: 'center', margin: '22px 0 8px' }}>
