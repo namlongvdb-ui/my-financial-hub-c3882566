@@ -31,9 +31,13 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
   const { day, month, year } = formatDateParts(data.date);
   const amountWords = data.amount > 0 ? numberToVietnameseWords(data.amount) : 'Không đồng';
 
+  const labelStyle: React.CSSProperties = { margin: '6px 0', lineHeight: '1.6' };
+  const valueStyle: React.CSSProperties = { fontWeight: 500 };
+
   return (
-    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '30px 40px', maxWidth: '700px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '14px', color: '#000', padding: '30px 45px', maxWidth: '720px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgSubName.toUpperCase()}</p>
@@ -44,65 +48,76 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', margin: '15px 0 5px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{title}</h2>
-        <p style={{ fontSize: '13px', margin: '3px 0', fontStyle: 'italic' }}>
+      {/* Title */}
+      <div style={{ textAlign: 'center', margin: '18px 0 8px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>{title}</h2>
+        <p style={{ fontSize: '13px', margin: '4px 0', fontStyle: 'italic' }}>
           Ngày {day} tháng {month} năm {year}
         </p>
         <p style={{ fontSize: '13px', margin: '2px 0' }}>Số CT: {data.voucherNo}</p>
       </div>
 
-      <div style={{ textAlign: 'right', fontSize: '12px', marginBottom: '10px' }}>
-        <p style={{ margin: '1px 0' }}>Nợ: {type === 'chi' && data.accountCode ? data.accountCode : '.................'}</p>
-        <p style={{ margin: '1px 0' }}>Có: {type === 'thu' && data.accountCode ? data.accountCode : '.................'}</p>
+      {/* Nợ / Có */}
+      <div style={{ textAlign: 'right', fontSize: '13px', marginBottom: '12px' }}>
+        <p style={{ margin: '2px 0' }}>Nợ: {type === 'chi' && data.accountCode ? data.accountCode : '.................'}</p>
+        <p style={{ margin: '2px 0' }}>Có: {type === 'thu' && data.accountCode ? data.accountCode : '.................'}</p>
       </div>
 
-      <div style={{ lineHeight: '1.8' }}>
-        <p style={{ margin: '3px 0' }}>{personLabel}: <span style={{ borderBottom: '1px dotted #000', paddingBottom: '1px' }}>{data.personName || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Đơn vị: <span style={{ borderBottom: '1px dotted #000', paddingBottom: '1px' }}>{data.department || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Nội dung: <span style={{ borderBottom: '1px dotted #000', paddingBottom: '1px' }}>{data.description || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Số tiền: <span style={{ fontWeight: 'bold', borderBottom: '1px dotted #000', paddingBottom: '1px' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} VNĐ` : '0 VNĐ'}</span></p>
-        <p style={{ margin: '3px 0' }}>Viết bằng chữ: <span style={{ fontStyle: 'italic', borderBottom: '1px dotted #000', paddingBottom: '1px' }}>{amountWords}</span></p>
-        <p style={{ margin: '3px 0' }}>Chứng từ kèm theo: ................ là chứng từ gốc</p>
+      {/* Content */}
+      <div style={{ lineHeight: '1.7', fontSize: '14px' }}>
+        <p style={labelStyle}>{personLabel}: <span style={valueStyle}>{data.personName || '...................................'}</span></p>
+        <p style={labelStyle}>Đơn vị: <span style={valueStyle}>{data.department || '...................................'}</span></p>
+        <p style={labelStyle}>Nội dung: <span style={valueStyle}>{data.description || '...................................'}</span></p>
+        <p style={labelStyle}>Số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} VNĐ` : '0 VNĐ'}</span></p>
+        <p style={labelStyle}>Viết bằng chữ: <span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>{amountWords}</span></p>
+        <p style={labelStyle}>Chứng từ kèm theo: ................ là chứng từ gốc</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', textAlign: 'center', fontSize: '13px' }}>
+      {/* Signatures - Top */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>LÃNH ĐẠO ĐƠN VỊ</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.leaderName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>LÃNH ĐẠO ĐƠN VỊ</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.leaderName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>PHỤ TRÁCH KẾ TOÁN</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.accountantName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>PHỤ TRÁCH KẾ TOÁN</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>NGƯỜI LẬP</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.creatorName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>NGƯỜI LẬP</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.creatorName}</p>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px dashed #999', margin: '25px 0' }} />
+      <hr style={{ border: 'none', borderTop: '1px dashed #aaa', margin: '28px 0' }} />
 
-      <p style={{ margin: '5px 0' }}>Đã nhận đủ số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} VNĐ` : '0 VNĐ'}</span></p>
-      <p style={{ margin: '5px 0' }}>Viết bằng chữ: <span style={{ fontStyle: 'italic' }}>{amountWords}</span></p>
+      {/* Receipt section */}
+      <p style={{ margin: '6px 0' }}>Đã nhận đủ số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} VNĐ` : '0 VNĐ'}</span></p>
+      <p style={{ margin: '6px 0' }}>Viết bằng chữ: <span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>{amountWords}</span></p>
 
-      <div style={{ textAlign: 'right', margin: '15px 0', fontStyle: 'italic', fontSize: '13px' }}>
+      <div style={{ textAlign: 'right', margin: '18px 0', fontStyle: 'italic', fontSize: '13px' }}>
         Ngày {day} tháng {month} năm {year}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', textAlign: 'center', fontSize: '13px' }}>
+      {/* Signatures - Bottom */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '50%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>THỦ QUỸ</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.treasurerName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>THỦ QUỸ</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.treasurerName}</p>
         </div>
         <div style={{ width: '50%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Người {type === 'thu' ? 'nộp' : 'nhận'} tiền</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{data.personName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Người {type === 'thu' ? 'nộp' : 'nhận'} tiền</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{data.personName}</p>
         </div>
       </div>
     </div>

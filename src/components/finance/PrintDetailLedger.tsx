@@ -9,38 +9,45 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('vi-VN');
 }
 
+const typeLabels: Record<string, string> = {
+  thu: 'PT',
+  chi: 'PC',
+  'tham-hoi': 'TH',
+  'de-nghi': 'DN',
+};
+
 export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
   const settings = getOrgSettings();
   const rows = useMemo(() => {
     return getTransactions().sort((a, b) => a.date.localeCompare(b.date));
   }, [refreshKey]);
 
-  const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '3px 5px', fontSize: '11px' };
-  const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f0f0f0' };
+  const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '4px 6px', fontSize: '11px', verticalAlign: 'middle' };
+  const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5', padding: '5px 6px' };
   const rightCell: React.CSSProperties = { ...cellStyle, textAlign: 'right' };
-  const centerCell: React.CSSProperties = { ...cellStyle, textAlign: 'center' };
+  const centerCell: React.CSSProperties = { ...cellStyle, textAlign: 'center', whiteSpace: 'nowrap' };
 
   return (
-    <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '12px', color: '#000', padding: '15px 20px' }}>
+    <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '12px', color: '#000', padding: '20px 25px' }}>
       <p style={{ fontWeight: 'bold', margin: 0, fontSize: '12px' }}>{settings.orgName.toUpperCase()}</p>
-      <p style={{ fontWeight: 'bold', margin: '0 0 10px', fontSize: '12px' }}>{settings.orgSubName.toUpperCase()}</p>
+      <p style={{ fontWeight: 'bold', margin: '0 0 12px', fontSize: '12px' }}>{settings.orgSubName.toUpperCase()}</p>
 
-      <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '10px 0 15px' }}>SỔ CHI TIẾT</h2>
+      <h2 style={{ textAlign: 'center', fontSize: '22px', fontWeight: 'bold', margin: '12px 0 16px', letterSpacing: '1px' }}>SỔ CHI TIẾT</h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={headerCellStyle}>NgàyCT</th>
-            <th style={headerCellStyle}>SoCT</th>
-            <th style={headerCellStyle}>Sotien</th>
-            <th style={headerCellStyle}>Noidung</th>
-            <th style={headerCellStyle}>LoaiCT</th>
+            <th style={headerCellStyle}>Ngày CT</th>
+            <th style={headerCellStyle}>Số CT</th>
+            <th style={headerCellStyle}>Số tiền</th>
+            <th style={headerCellStyle}>Nội dung</th>
+            <th style={headerCellStyle}>Loại</th>
             <th style={headerCellStyle}>Thu</th>
             <th style={headerCellStyle}>Chi</th>
             <th style={headerCellStyle}>TK</th>
-            <th style={headerCellStyle}>Hoten</th>
-            <th style={headerCellStyle}>Donvi</th>
-            <th style={headerCellStyle}>LD</th>
+            <th style={headerCellStyle}>Họ tên</th>
+            <th style={headerCellStyle}>Đơn vị</th>
+            <th style={headerCellStyle}>Lãnh đạo</th>
           </tr>
         </thead>
         <tbody>
@@ -50,9 +57,9 @@ export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
               <td style={centerCell}>{row.voucherNo}</td>
               <td style={rightCell}>{formatCurrency(row.amount)}</td>
               <td style={cellStyle}>{row.description}</td>
-              <td style={centerCell}>{row.type === 'thu' ? 'PT' : 'PC'}</td>
-              <td style={rightCell}>{row.type === 'thu' ? formatCurrency(row.amount) : '0'}</td>
-              <td style={rightCell}>{row.type === 'chi' ? formatCurrency(row.amount) : '0'}</td>
+              <td style={centerCell}>{typeLabels[row.type] || row.type}</td>
+              <td style={rightCell}>{row.type === 'thu' ? formatCurrency(row.amount) : ''}</td>
+              <td style={rightCell}>{row.type === 'chi' ? formatCurrency(row.amount) : ''}</td>
               <td style={centerCell}>{row.accountCode}</td>
               <td style={cellStyle}>{row.personName}</td>
               <td style={cellStyle}>{row.department}</td>
@@ -66,6 +73,31 @@ export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
           )}
         </tbody>
       </table>
+
+      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>
+        Ngày........ tháng........ năm........
+      </p>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
+        <div style={{ width: '33%' }}>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Người lập</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.creatorName}</p>
+        </div>
+        <div style={{ width: '33%' }}>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Kế toán trưởng</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.chiefAccountantName}</p>
+        </div>
+        <div style={{ width: '33%' }}>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Thủ trưởng đơn vị</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.leaderName}</p>
+        </div>
+      </div>
     </div>
   );
 }

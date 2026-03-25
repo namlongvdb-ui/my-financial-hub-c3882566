@@ -17,15 +17,15 @@ function formatCurrency(n: number) {
 export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const settings = getOrgSettings();
   const d = new Date(data.date);
-  const day = d.getDate();
-  const month = d.getMonth() + 1;
   const year = d.getFullYear();
   const amountWords = data.amount > 0 ? numberToVietnameseWords(data.amount) : 'Không đồng';
 
+  const labelStyle: React.CSSProperties = { margin: '8px 0', lineHeight: '1.7' };
+
   return (
-    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '30px 40px', maxWidth: '700px', margin: '0 auto' }}>
+    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '14px', color: '#000', padding: '30px 45px', maxWidth: '720px', margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>TỔ CÔNG ĐOÀN KẾ TOÁN – HÀNH CHÍNH</p>
@@ -37,36 +37,39 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
       </div>
 
       {/* Title */}
-      <div style={{ textAlign: 'center', margin: '25px 0 20px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>PHIẾU THĂM HỎI</h2>
+      <div style={{ textAlign: 'center', margin: '28px 0 24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>PHIẾU THĂM HỎI</h2>
       </div>
 
       {/* Content */}
-      <div style={{ lineHeight: '2' }}>
-        <p style={{ margin: '3px 0' }}>Họ và tên người thăm hỏi: <span>{data.visitorDepartment || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Họ và Tên người được thăm hỏi: <span>{data.recipientName || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Lý do thăm hỏi: <span>{data.reason || '...................................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} đ` : '.................'}</span></p>
-        <p style={{ margin: '3px 0' }}>Bằng chữ: <span style={{ fontWeight: 'bold' }}>{amountWords}.</span></p>
+      <div style={{ lineHeight: '1.7', fontSize: '14px' }}>
+        <p style={labelStyle}>Họ và tên người thăm hỏi: <span style={{ fontWeight: 500 }}>{data.visitorDepartment || '...................................'}</span></p>
+        <p style={labelStyle}>Họ và Tên người được thăm hỏi: <span style={{ fontWeight: 500 }}>{data.recipientName || '...................................'}</span></p>
+        <p style={labelStyle}>Lý do thăm hỏi: <span style={{ fontWeight: 500 }}>{data.reason || '...................................'}</span></p>
+        <p style={labelStyle}>Số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} đ` : '.................'}</span></p>
+        <p style={labelStyle}>Bằng chữ: <span style={{ fontWeight: 'bold' }}>{amountWords}.</span></p>
       </div>
 
-      {/* Date and Signatures */}
-      <div style={{ textAlign: 'center', margin: '20px 0 5px', fontStyle: 'italic', fontSize: '13px' }}>
+      {/* Date */}
+      <div style={{ textAlign: 'center', margin: '24px 0 8px', fontStyle: 'italic', fontSize: '13px' }}>
         <p style={{ margin: 0 }}>Ngày ..... tháng ..... năm {year}</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', textAlign: 'center', fontSize: '13px' }}>
+      {/* Signatures */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '50%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>TM.BCH CĐCS</p>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Chủ Tịch</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM.BCH CĐCS</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Chủ Tịch</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.unionLeaderName}</p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.unionLeaderName}</p>
         </div>
         <div style={{ width: '50%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>TM. Tổ công đoàn</p>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Tổ trưởng</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM. Tổ công đoàn</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Tổ trưởng</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}></p>
         </div>
       </div>
     </div>

@@ -28,23 +28,23 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
     return { rows, opening, totalThu, totalChi, closing: opening + totalThu - totalChi };
   }, [refreshKey]);
 
-  const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '4px 6px', fontSize: '12px' };
-  const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f0f0f0' };
+  const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '5px 8px', fontSize: '12px', verticalAlign: 'middle' };
+  const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5', padding: '6px 8px' };
   const rightCell: React.CSSProperties = { ...cellStyle, textAlign: 'right' };
 
   return (
-    <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '20px 30px' }}>
+    <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '25px 35px' }}>
       <p style={{ fontWeight: 'bold', margin: 0, fontSize: '13px' }}>{settings.orgName.toUpperCase()}</p>
-      <p style={{ fontWeight: 'bold', margin: '0 0 10px', fontSize: '13px' }}>{settings.orgSubName.toUpperCase()}</p>
+      <p style={{ fontWeight: 'bold', margin: '0 0 12px', fontSize: '13px' }}>{settings.orgSubName.toUpperCase()}</p>
 
-      <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '10px 0 3px' }}>SỔ QUỸ TIỀN MẶT</h2>
-      <p style={{ textAlign: 'right', fontSize: '11px', margin: '0 0 8px' }}>ĐVT: đồng</p>
+      <h2 style={{ textAlign: 'center', fontSize: '22px', fontWeight: 'bold', margin: '12px 0 4px', letterSpacing: '1px' }}>SỔ QUỸ TIỀN MẶT</h2>
+      <p style={{ textAlign: 'right', fontSize: '11px', margin: '0 0 10px' }}>ĐVT: đồng</p>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={headerCellStyle} rowSpan={2}>Ngày chứng từ</th>
-            <th style={headerCellStyle} rowSpan={2}>Số Chứng từ</th>
+            <th style={headerCellStyle} rowSpan={2}>Ngày CT</th>
+            <th style={headerCellStyle} rowSpan={2}>Số CT</th>
             <th style={headerCellStyle} rowSpan={2}>Nội dung</th>
             <th style={headerCellStyle} colSpan={2}>Số tiền</th>
             <th style={headerCellStyle} rowSpan={2}>Tồn</th>
@@ -63,11 +63,11 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
           </tr>
           {data.rows.map(row => (
             <tr key={row.id}>
-              <td style={{ ...cellStyle, textAlign: 'center' }}>{formatDate(row.date)}</td>
-              <td style={{ ...cellStyle, textAlign: 'center' }}>{row.voucherNo}</td>
+              <td style={{ ...cellStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
+              <td style={{ ...cellStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>{row.voucherNo}</td>
               <td style={cellStyle}>{row.description}</td>
-              <td style={rightCell}>{row.thu > 0 ? formatCurrency(row.thu) : '0'}</td>
-              <td style={rightCell}>{row.chi > 0 ? formatCurrency(row.chi) : '0'}</td>
+              <td style={rightCell}>{row.thu > 0 ? formatCurrency(row.thu) : ''}</td>
+              <td style={rightCell}>{row.chi > 0 ? formatCurrency(row.chi) : ''}</td>
               <td style={rightCell}>{formatCurrency(row.balance)}</td>
             </tr>
           ))}
@@ -86,25 +86,28 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
         </tbody>
       </table>
 
-      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '15px 0 5px', fontSize: '13px' }}>
-        ngày........ tháng........ năm........
+      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>
+        Ngày........ tháng........ năm........
       </p>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', textAlign: 'center', fontSize: '13px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Thủ Quỹ</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.treasurerName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Thủ Quỹ</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.treasurerName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Kế toán trưởng</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.chiefAccountantName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Kế toán trưởng</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.chiefAccountantName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 3px' }}>Thủ trưởng đơn vị</p>
-          <p style={{ minHeight: '50px' }}></p>
-          <p style={{ fontWeight: 'bold' }}>{settings.leaderName}</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Thủ trưởng đơn vị</p>
+          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
+          <p style={{ minHeight: '55px' }}></p>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.leaderName}</p>
         </div>
       </div>
     </div>
