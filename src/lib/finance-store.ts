@@ -9,10 +9,11 @@ const defaultSettings: OrgSettings = {
   orgSubName: 'CĐ NHPT Chi nhánh KV Bắc Đông Bắc',
   leaderName: 'Phí Quang Chiến',
   accountantName: 'Lê Thị Thu Hương',
-  chiefAccountantName: 'Lê Thị Thu Hương',
   creatorName: 'Lê Thị Thu Hương',
   treasurerName: 'Nguyễn Thị Yến',
-  unionLeaderName: 'Phí Quang Chiến',
+  unionGroups: [
+    { name: 'Tổ CĐ BP Kế toán – Hành chính', leaderName: 'Phí Quang Chiến' },
+  ],
   defaultAccountCode: '111',
   openingBalance: 50000000,
 };
@@ -20,7 +21,15 @@ const defaultSettings: OrgSettings = {
 export function getOrgSettings(): OrgSettings {
   const stored = localStorage.getItem(SETTINGS_KEY);
   if (stored) {
-    return { ...defaultSettings, ...JSON.parse(stored) };
+    const parsed = JSON.parse(stored);
+    // Backward compatibility: migrate old unionLeaderName to unionGroups
+    if (!parsed.unionGroups && parsed.unionLeaderName) {
+      parsed.unionGroups = [{ name: 'Tổ CĐ', leaderName: parsed.unionLeaderName }];
+      delete parsed.unionLeaderName;
+    }
+    // Remove deprecated field
+    delete parsed.chiefAccountantName;
+    return { ...defaultSettings, ...parsed };
   }
   return defaultSettings;
 }

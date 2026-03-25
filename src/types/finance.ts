@@ -41,10 +41,9 @@ export interface OrgSettings {
   orgSubName: string;
   leaderName: string;
   accountantName: string;
-  chiefAccountantName: string;
   creatorName: string;
   treasurerName: string;
-  unionLeaderName: string;
+  unionGroups: { name: string; leaderName: string }[];
   defaultAccountCode: string;
   openingBalance: number;
 }
