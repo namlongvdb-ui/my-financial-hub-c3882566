@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { addTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
-import { FileText, Save, Printer } from 'lucide-react';
+import { addTransaction, updateTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { Transaction } from '@/types/finance';
+import { FileText, Save, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
@@ -16,22 +17,54 @@ interface VoucherFormProps {
   refreshKey?: number;
 }
 
+const emptyForm = (type: 'thu' | 'chi', settings: ReturnType<typeof getOrgSettings>) => ({
+  date: new Date().toISOString().split('T')[0],
+  voucherNo: getNextVoucherNo(type),
+  amount: '',
+  description: '',
+  personName: '',
+  department: '',
+  accountCode: settings.defaultAccountCode,
+  approver: settings.leaderName,
+  attachments: 1,
+});
+
 export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
   const title = type === 'thu' ? 'PHIẾU THU' : 'PHIẾU CHI';
   const settings = getOrgSettings();
-  const [form, setForm] = useState({
-    date: new Date().toISOString().split('T')[0],
-    voucherNo: getNextVoucherNo(type),
-    amount: '',
-    description: '',
-    personName: '',
-    department: '',
-    accountCode: settings.defaultAccountCode,
-    approver: settings.leaderName,
-    attachments: 1,
-  });
+
+  const [form, setForm] = useState(() => emptyForm(type, settings));
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   const amount = parseInt(form.amount) || 0;
+
+  // Reset form when type changes
+  useEffect(() => {
+    setForm(emptyForm(type, settings));
+    setEditingTx(null);
+  }, [type]);
+
+  const handleSelectForEdit = (tx: Transaction) => {
+    setEditingTx(tx);
+    setForm({
+      date: tx.date,
+      voucherNo: tx.voucherNo,
+      amount: tx.amount.toString(),
+      description: tx.description,
+      personName: tx.personName,
+      department: tx.department,
+      accountCode: tx.accountCode,
+      approver: tx.approver,
+      attachments: tx.attachments,
+    });
+    // Scroll to top of form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTx(null);
+    setForm(emptyForm(type, settings));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,45 +72,70 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
       toast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
-    addTransaction({
-      date: form.date,
-      voucherNo: form.voucherNo,
-      type,
-      amount,
-      description: form.description,
-      personName: form.personName,
-      department: form.department,
-      accountCode: form.accountCode,
-      approver: form.approver,
-      attachments: form.attachments,
-    });
-    toast.success(`${title} ${form.voucherNo} đã được lưu`);
-    setForm({
-      ...form,
-      voucherNo: getNextVoucherNo(type),
-      amount: '',
-      description: '',
-      personName: '',
-      department: '',
-      accountCode: '',
-    });
+
+    if (editingTx) {
+      // Update existing transaction
+      updateTransaction(editingTx.id, {
+        date: form.date,
+        voucherNo: form.voucherNo,
+        type,
+        amount,
+        description: form.description,
+        personName: form.personName,
+        department: form.department,
+        accountCode: form.accountCode,
+        approver: form.approver,
+        attachments: form.attachments,
+      });
+      toast.success(`${title} ${form.voucherNo} đã được cập nhật`);
+      setEditingTx(null);
+    } else {
+      // Add new transaction
+      addTransaction({
+        date: form.date,
+        voucherNo: form.voucherNo,
+        type,
+        amount,
+        description: form.description,
+        personName: form.personName,
+        department: form.department,
+        accountCode: form.accountCode,
+        approver: form.approver,
+        attachments: form.attachments,
+      });
+      toast.success(`${title} ${form.voucherNo} đã được lưu`);
+    }
+
+    setForm(emptyForm(type, settings));
     onSaved?.();
   };
 
   return (
     <>
       <Card className="max-w-3xl mx-auto border-border shadow-lg no-print">
-        <CardHeader className="bg-primary/5 border-b border-border relative">
-          <Button type="button" variant="outline" size="sm" className="absolute right-4 top-4" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> In phiếu
-          </Button>
+        <CardHeader className={`border-b border-border relative ${editingTx ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-primary/5'}`}>
+          <div className="flex items-center gap-2 absolute right-4 top-4">
+            {editingTx && (
+              <Button type="button" variant="outline" size="sm" onClick={handleCancelEdit}>
+                <X className="h-4 w-4 mr-1" /> Hủy sửa
+              </Button>
+            )}
+            <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-1" /> In phiếu
+            </Button>
+          </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName}</p>
             <p className="text-xs text-muted-foreground">{settings.orgSubName}</p>
             <CardTitle className="text-2xl font-bold text-primary mt-3 flex items-center justify-center gap-2">
               <FileText className="h-6 w-6" />
-              {title}
+              {editingTx ? `SỬA ${title}` : title}
             </CardTitle>
+            {editingTx && (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                Đang sửa phiếu {editingTx.voucherNo}
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -149,8 +207,8 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              <Save className="h-4 w-4 mr-2" /> Lưu {title}
+            <Button type="submit" className={`w-full ${editingTx ? 'bg-amber-600 hover:bg-amber-700' : ''}`} size="lg">
+              <Save className="h-4 w-4 mr-2" /> {editingTx ? `Cập nhật ${title}` : `Lưu ${title}`}
             </Button>
           </form>
         </CardContent>
@@ -173,7 +231,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
         />
       </div>
 
-      <VoucherList type={type} onChanged={onSaved} refreshKey={refreshKey} />
+      <VoucherList type={type} onChanged={onSaved} refreshKey={refreshKey} onSelectForEdit={handleSelectForEdit} />
     </>
   );
 }
