@@ -16,7 +16,7 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = 
 
 export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
   return (
-    <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col shrink-0">
+    <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col shrink-0 no-print">
       <div className="p-5 border-b border-sidebar-border">
         <h1 className="text-lg font-bold text-sidebar-primary-foreground tracking-tight">Tài Chính</h1>
         <p className="text-xs text-sidebar-foreground/60 mt-0.5">Công Đoàn</p>

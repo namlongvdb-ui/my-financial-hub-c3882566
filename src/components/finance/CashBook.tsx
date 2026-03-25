@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { getTransactions, getOpeningBalance } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Printer } from 'lucide-react';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN');
@@ -35,8 +36,11 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
   }, [refreshKey]);
 
   return (
-    <Card className="border-border shadow-lg">
-      <CardHeader className="bg-primary/5 border-b border-border text-center">
+    <Card className="border-border shadow-lg print-container">
+      <CardHeader className="bg-primary/5 border-b border-border text-center relative">
+        <Button variant="outline" size="sm" className="absolute right-4 top-4 no-print" onClick={() => window.print()}>
+          <Printer className="h-4 w-4 mr-1" /> In sổ
+        </Button>
         <p className="text-xs text-muted-foreground tracking-wider uppercase">Công đoàn NHPT Việt Nam - CĐ NHPT Chi nhánh KV Bắc Đông Bắc</p>
         <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
           <BookOpen className="h-6 w-6" /> SỔ QUỸ TIỀN MẶT

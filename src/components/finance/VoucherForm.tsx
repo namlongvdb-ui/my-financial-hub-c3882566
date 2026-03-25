@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { addTransaction, getNextVoucherNo, numberToVietnameseWords } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { FileText, Save } from 'lucide-react';
+import { FileText, Save, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VoucherFormProps {
@@ -62,8 +62,11 @@ export function VoucherForm({ type, onSaved }: VoucherFormProps) {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto border-border shadow-lg">
-      <CardHeader className="bg-primary/5 border-b border-border">
+    <Card className="max-w-3xl mx-auto border-border shadow-lg print-container">
+      <CardHeader className="bg-primary/5 border-b border-border relative">
+        <Button type="button" variant="outline" size="sm" className="absolute right-4 top-4 no-print" onClick={() => window.print()}>
+          <Printer className="h-4 w-4 mr-1" /> In phiếu
+        </Button>
         <div className="text-center">
           <p className="text-xs text-muted-foreground tracking-wider uppercase">Công đoàn NHPT Việt Nam</p>
           <p className="text-xs text-muted-foreground">CĐ NHPT Chi nhánh KV Bắc Đông Bắc</p>
@@ -140,7 +143,7 @@ export function VoucherForm({ type, onSaved }: VoucherFormProps) {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
+          <Button type="submit" className="w-full no-print" size="lg">
             <Save className="h-4 w-4 mr-2" /> Lưu {title}
           </Button>
         </form>
