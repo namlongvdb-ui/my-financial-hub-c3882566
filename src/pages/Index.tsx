@@ -24,8 +24,8 @@ const Index = () => {
         {currentView === 'dashboard' && <Dashboard refreshKey={refreshKey} />}
         {currentView === 'phieu-thu' && <VoucherForm type="thu" onSaved={handleSaved} />}
         {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} />}
-        {currentView === 'phieu-tham-hoi' && <VisitVoucherForm />}
-        {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm />}
+        {currentView === 'phieu-tham-hoi' && <VisitVoucherForm onSaved={handleSaved} />}
+        {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm onSaved={handleSaved} />}
         {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
         {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
