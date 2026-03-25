@@ -172,6 +172,8 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
           }}
         />
       </div>
+
+      <VoucherList type={type} onChanged={onSaved} refreshKey={refreshKey} />
     </>
   );
 }

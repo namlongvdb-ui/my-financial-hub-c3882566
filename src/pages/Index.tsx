@@ -22,8 +22,8 @@ const Index = () => {
       <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
       <main className="flex-1 p-6 overflow-auto">
         {currentView === 'dashboard' && <Dashboard refreshKey={refreshKey} />}
-        {currentView === 'phieu-thu' && <VoucherForm type="thu" onSaved={handleSaved} />}
-        {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} />}
+        {currentView === 'phieu-thu' && <VoucherForm type="thu" onSaved={handleSaved} refreshKey={refreshKey} />}
+        {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} refreshKey={refreshKey} />}
         {currentView === 'phieu-tham-hoi' && <VisitVoucherForm onSaved={handleSaved} />}
         {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm onSaved={handleSaved} />}
         {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
