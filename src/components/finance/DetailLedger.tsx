@@ -148,7 +148,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="print-only hidden">
+      <div className="print-only print-landscape hidden">
         <PrintDetailLedger refreshKey={refreshKey} />
       </div>
     </>

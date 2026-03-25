@@ -102,38 +102,126 @@ All colors MUST be HSL.
   }
 }
 
+/* Print styles */
 .print-only {
   display: none;
 }
 
 @media print {
-  body {
+  /* Default A4 portrait */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* A4 landscape for detail ledger */
+  .print-landscape {
+    page: landscape;
+  }
+
+  @page landscape {
+    size: A4 landscape;
+    margin: 10mm 12mm;
+  }
+
+  /* Reset body */
+  html, body {
     background: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     color: #000 !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-
-  main {
+    margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
     overflow: visible !important;
+    font-size: 12pt !important;
   }
 
-  .print-container {
-    box-shadow: none !important;
-    border: none !important;
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
     max-width: 100% !important;
   }
 
-  @page {
-    margin: 10mm;
+  /* Hide everything by default */
+  body > *,
+  #root > *,
+  #root > * > *,
+  .flex.min-h-screen > * {
+    display: none !important;
+  }
+
+  /* Show only print areas */
+  body,
+  #root,
+  #root > *,
+  .flex.min-h-screen {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: visible !important;
+    min-height: auto !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+
+  /* Hide non-print elements */
+  .no-print,
+  nav,
+  aside,
+  button,
+  [role="navigation"],
+  header:not(.print-only *),
+  .Toaster,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* Print content styling */
+  .print-only .print-voucher,
+  .print-only > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure tables print properly */
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Remove any transforms or fixed positioning */
+  * {
+    transform: none !important;
+    position: static !important;
+    float: none !important;
+  }
+
+  .print-only,
+  .print-only * {
+    position: relative !important;
   }
 }
