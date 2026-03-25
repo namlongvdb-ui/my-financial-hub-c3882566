@@ -111,7 +111,7 @@ All colors MUST be HSL.
   /* Default A4 portrait */
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm;
+    margin: 15mm 12mm;
   }
 
   /* A4 landscape for detail ledger */
