@@ -111,7 +111,7 @@ All colors MUST be HSL.
   /* Default A4 portrait */
   @page {
     size: A4 portrait;
-    margin: 15mm 12mm;
+    margin: 10mm 12mm;
   }
 
   /* A4 landscape for detail ledger */
@@ -195,12 +195,14 @@ All colors MUST be HSL.
 
   /* Print content sizing */
   .print-only .print-voucher,
+  .print-only .print-voucher *, /* Thêm dòng này để tắt border của tất cả thẻ con bên trong */
   .print-only > div {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 auto !important;
     box-shadow: none !important;
-    border: none !important;
+    border: none !important; /* Xóa bỏ đường kẻ */
+  
   }
 
   /* Tables */
