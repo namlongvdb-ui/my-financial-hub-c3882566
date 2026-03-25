@@ -1,6 +1,11 @@
 import { ViewType } from '@/types/finance';
 import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Settings } from 'lucide-react';
 
+interface AppSidebarProps {
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
+}
+
 const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = [
   { view: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
   { view: 'phieu-thu', label: 'Phiếu Thu', icon: FileInput },
