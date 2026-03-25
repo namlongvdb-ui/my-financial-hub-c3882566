@@ -26,7 +26,7 @@ export interface DetailLedgerEntry extends Transaction {
   runningBalance: number;
 }
 
-export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'so-quy' | 'so-chi-tiet' | 'cai-dat';
+export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'cai-dat';
 
 export interface OrgSettings {
   orgName: string;

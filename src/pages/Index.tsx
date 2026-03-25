@@ -3,6 +3,8 @@ import { ViewType } from '@/types/finance';
 import { AppSidebar } from '@/components/finance/AppSidebar';
 import { Dashboard } from '@/components/finance/Dashboard';
 import { VoucherForm } from '@/components/finance/VoucherForm';
+import { VisitVoucherForm } from '@/components/finance/VisitVoucherForm';
+import { PaymentRequestForm } from '@/components/finance/PaymentRequestForm';
 import { CashBook } from '@/components/finance/CashBook';
 import { DetailLedger } from '@/components/finance/DetailLedger';
 import { SettingsForm } from '@/components/finance/SettingsForm';
@@ -22,6 +24,8 @@ const Index = () => {
         {currentView === 'dashboard' && <Dashboard refreshKey={refreshKey} />}
         {currentView === 'phieu-thu' && <VoucherForm type="thu" onSaved={handleSaved} />}
         {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} />}
+        {currentView === 'phieu-tham-hoi' && <VisitVoucherForm />}
+        {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm />}
         {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
         {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
