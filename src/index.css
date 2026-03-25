@@ -135,7 +135,6 @@ All colors MUST be HSL.
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
-    font-size: 12pt !important;
   }
 
   #root {
@@ -144,26 +143,28 @@ All colors MUST be HSL.
     max-width: 100% !important;
   }
 
-  /* Hide everything by default */
-  body > *,
-  #root > *,
-  #root > * > *,
-  .flex.min-h-screen > * {
+  /* Hide sidebar, cards, buttons, toasters, collapsibles - everything UI */
+  aside,
+  nav,
+  .no-print,
+  button,
+  [role="navigation"],
+  .Toaster,
+  [data-sonner-toaster],
+  [data-radix-collection-item] {
     display: none !important;
   }
 
-  /* Show only print areas */
-  body,
-  #root,
-  #root > *,
-  .flex.min-h-screen {
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    overflow: visible !important;
-    min-height: auto !important;
+  /* Hide all Card components (the form UI cards and list cards) */
+  .border-border.shadow-lg.no-print,
+  [class*="shadow-lg"]:not(.print-only *) {
+    display: none !important;
+  }
+
+  /* Hide collapsible lists */
+  [data-state="open"],
+  [data-state="closed"] {
+    display: none !important;
   }
 
   /* Show print-only elements */
@@ -172,38 +173,41 @@ All colors MUST be HSL.
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    position: relative !important;
     overflow: visible !important;
-    page-break-inside: avoid;
   }
 
-  /* Hide non-print elements */
-  .no-print,
-  nav,
-  aside,
-  button,
-  [role="navigation"],
-  header:not(.print-only *),
-  .Toaster,
-  [data-sonner-toaster] {
-    display: none !important;
+  .print-only * {
+    visibility: visible !important;
   }
 
-  /* Print content styling */
+  /* Ensure main and ancestors are visible and unstyled */
+  main,
+  .flex.min-h-screen {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: visible !important;
+    min-height: auto !important;
+    background: white !important;
+  }
+
+  /* Print content sizing */
   .print-only .print-voucher,
   .print-only > div {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;
   }
 
-  /* Ensure tables print properly */
+  /* Tables */
   table {
     page-break-inside: auto;
   }
-  
+
   tr {
     page-break-inside: avoid;
     page-break-after: auto;
@@ -211,17 +215,5 @@ All colors MUST be HSL.
 
   thead {
     display: table-header-group;
-  }
-
-  /* Remove any transforms or fixed positioning */
-  * {
-    transform: none !important;
-    position: static !important;
-    float: none !important;
-  }
-
-  .print-only,
-  .print-only * {
-    position: relative !important;
   }
 }
