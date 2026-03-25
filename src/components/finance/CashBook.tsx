@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
-import { BookOpen, Printer } from 'lucide-react';
+import { BookOpen, Printer, Download } from 'lucide-react';
 import { PrintCashBook } from './PrintCashBook';
+import { exportCashBookExcel } from '@/lib/export-utils';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN');
@@ -40,9 +41,14 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
     <>
       <Card className="border-border shadow-lg no-print">
         <CardHeader className="bg-primary/5 border-b border-border text-center relative">
-          <Button variant="outline" size="sm" className="absolute right-4 top-4" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> In sổ
-          </Button>
+          <div className="absolute right-4 top-4 flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportCashBookExcel}>
+              <Download className="h-4 w-4 mr-1" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-1" /> In sổ
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName} - {settings.orgSubName}</p>
           <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
             <BookOpen className="h-6 w-6" /> SỔ QUỸ TIỀN MẶT

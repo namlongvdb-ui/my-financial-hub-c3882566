@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
-import { Wallet, TrendingUp, TrendingDown, Banknote } from 'lucide-react';
+import { exportFullReportExcel } from '@/lib/export-utils';
+import { Wallet, TrendingUp, TrendingDown, Banknote, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN') + ' ₫';
@@ -27,9 +29,14 @@ export function Dashboard({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Tổng quan tài chính</h1>
-        <p className="text-muted-foreground text-sm">{settings.orgSubName}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Tổng quan tài chính</h1>
+          <p className="text-muted-foreground text-sm">{settings.orgSubName}</p>
+        </div>
+        <Button variant="outline" onClick={exportFullReportExcel}>
+          <Download className="h-4 w-4 mr-1" /> Xuất báo cáo Excel
+        </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(card => (
