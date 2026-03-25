@@ -103,20 +103,6 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
             </Table>
           </div>
 
-          <div className="grid grid-cols-3 text-center text-xs text-muted-foreground p-6 border-t border-border">
-            <div>
-              <p className="font-semibold uppercase mb-1">Thủ quỹ</p>
-              <p>{settings.treasurerName}</p>
-            </div>
-            <div>
-              <p className="font-semibold uppercase mb-1">Phụ trách kế toán</p>
-              <p>{settings.accountantName}</p>
-            </div>
-            <div>
-              <p className="font-semibold uppercase mb-1">Lãnh đạo</p>
-              <p>{settings.leaderName}</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
