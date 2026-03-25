@@ -53,8 +53,8 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
       </div>
 
       <div style={{ textAlign: 'right', fontSize: '12px', marginBottom: '10px' }}>
-        <p style={{ margin: '1px 0' }}>Nợ:.................</p>
-        <p style={{ margin: '1px 0' }}>Có:.................</p>
+        <p style={{ margin: '1px 0' }}>Nợ: {type === 'chi' && data.accountCode ? data.accountCode : '.................'}</p>
+        <p style={{ margin: '1px 0' }}>Có: {type === 'thu' && data.accountCode ? data.accountCode : '.................'}</p>
       </div>
 
       <div style={{ lineHeight: '1.8' }}>
