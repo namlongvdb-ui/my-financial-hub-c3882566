@@ -39,10 +39,8 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>PHÒNG GD CAO BẰNG</p>
         </div>
-        <div style={{ textAlign: 'right', fontSize: '12px' }}>
-          <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
-        </div>
-      </div>
+        <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
+       </div>
 
       {/* Title */}
       <div style={{ textAlign: 'center', margin: '22px 0 8px' }}>
