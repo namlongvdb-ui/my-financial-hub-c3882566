@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { getOrgSettings, saveOrgSettings } from '@/lib/finance-store';
 import { OrgSettings } from '@/types/finance';
-import { Settings, Save } from 'lucide-react';
+import { Settings, Save, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SettingsFormProps {
@@ -16,8 +16,6 @@ const fields: { key: keyof OrgSettings; label: string; placeholder: string; type
   { key: 'orgName', label: 'Tên tổ chức (dòng 1)', placeholder: 'Công đoàn NHPT Việt Nam' },
   { key: 'orgSubName', label: 'Tên đơn vị (dòng 2)', placeholder: 'CĐ NHPT Chi nhánh KV Bắc Đông Bắc' },
   { key: 'leaderName', label: 'Lãnh đạo đơn vị', placeholder: 'Họ tên lãnh đạo' },
-  { key: 'unionLeaderName', label: 'Tổ trưởng Công đoàn', placeholder: 'Họ tên tổ trưởng CĐ' },
-  { key: 'chiefAccountantName', label: 'Kế toán trưởng', placeholder: 'Họ tên kế toán trưởng' },
   { key: 'accountantName', label: 'Phụ trách kế toán', placeholder: 'Họ tên kế toán' },
   { key: 'treasurerName', label: 'Thủ quỹ', placeholder: 'Họ tên thủ quỹ' },
   { key: 'creatorName', label: 'Người lập', placeholder: 'Họ tên người lập' },
@@ -46,6 +44,27 @@ export function SettingsForm({ onSaved }: SettingsFormProps) {
     setForm(prev => ({
       ...prev,
       [key]: key === 'openingBalance' ? Number(value) || 0 : value,
+    }));
+  };
+
+  const addUnionGroup = () => {
+    setForm(prev => ({
+      ...prev,
+      unionGroups: [...prev.unionGroups, { name: '', leaderName: '' }],
+    }));
+  };
+
+  const removeUnionGroup = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      unionGroups: prev.unionGroups.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateUnionGroup = (index: number, field: 'name' | 'leaderName', value: string) => {
+    setForm(prev => ({
+      ...prev,
+      unionGroups: prev.unionGroups.map((g, i) => i === index ? { ...g, [field]: value } : g),
     }));
   };
 
@@ -80,6 +99,48 @@ export function SettingsForm({ onSaved }: SettingsFormProps) {
               <p className="font-medium text-primary text-lg">{Number(form.openingBalance).toLocaleString('vi-VN')} ₫</p>
             </div>
           )}
+
+          {/* Dynamic Union Groups */}
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-semibold text-foreground">Danh sách Tổ Công đoàn</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addUnionGroup}>
+                <Plus className="h-4 w-4 mr-1" /> Thêm tổ CĐ
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {form.unionGroups.map((group, index) => (
+                <div key={index} className="flex gap-2 items-end bg-muted/30 rounded-md p-3 border border-border">
+                  <div className="flex-1">
+                    <Label className="text-muted-foreground text-xs">Tên tổ công đoàn</Label>
+                    <Input
+                      value={group.name}
+                      onChange={e => updateUnionGroup(index, 'name', e.target.value)}
+                      placeholder="VD: Tổ CĐ BP Kế toán – Hành chính"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-muted-foreground text-xs">Tổ trưởng</Label>
+                    <Input
+                      value={group.leaderName}
+                      onChange={e => updateUnionGroup(index, 'leaderName', e.target.value)}
+                      placeholder="Họ tên tổ trưởng"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive shrink-0"
+                    onClick={() => removeUnionGroup(index)}
+                    disabled={form.unionGroups.length <= 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <Button type="submit" className="w-full" size="lg">
             <Save className="h-4 w-4 mr-2" /> Lưu cài đặt
