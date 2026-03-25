@@ -125,9 +125,7 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
             </Button>
           </div>
           <div className="text-center">
-            <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName}</p>
-            <p className="text-xs text-muted-foreground">{settings.orgSubName}</p>
-            <CardTitle className="text-2xl font-bold text-primary mt-3 flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
               <FileText className="h-6 w-6" />
               {editingTx ? 'SỬA GIẤY ĐỀ NGHỊ THANH TOÁN' : 'GIẤY ĐỀ NGHỊ THANH TOÁN'}
             </CardTitle>

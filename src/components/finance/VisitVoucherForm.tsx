@@ -108,9 +108,7 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
             </Button>
           </div>
           <div className="text-center">
-            <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName}</p>
-            <p className="text-xs text-muted-foreground">{settings.orgSubName}</p>
-            <CardTitle className="text-2xl font-bold text-primary mt-3 flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
               <Heart className="h-6 w-6" />
               {editingTx ? 'SỬA PHIẾU THĂM HỎI' : 'PHIẾU THĂM HỎI'}
             </CardTitle>

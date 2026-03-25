@@ -66,7 +66,6 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
               <Printer className="h-4 w-4 mr-1" /> In sổ
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName} - {settings.orgSubName}</p>
           <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
             <ClipboardList className="h-6 w-6" /> SỔ CHI TIẾT
           </CardTitle>

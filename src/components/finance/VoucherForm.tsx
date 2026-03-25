@@ -125,9 +125,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
             </Button>
           </div>
           <div className="text-center">
-            <p className="text-xs text-muted-foreground tracking-wider uppercase">{settings.orgName}</p>
-            <p className="text-xs text-muted-foreground">{settings.orgSubName}</p>
-            <CardTitle className="text-2xl font-bold text-primary mt-3 flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
               <FileText className="h-6 w-6" />
               {editingTx ? `SỬA ${title}` : title}
             </CardTitle>
@@ -191,21 +189,6 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
                 <p className="font-medium text-foreground italic">{numberToVietnameseWords(amount)}</p>
               </div>
             )}
-
-            <div className="border-t border-border pt-4 grid grid-cols-3 text-center text-xs text-muted-foreground">
-              <div>
-                <p className="font-semibold uppercase mb-1">Lãnh đạo đơn vị</p>
-                <p>{form.approver}</p>
-              </div>
-              <div>
-                <p className="font-semibold uppercase mb-1">Phụ trách kế toán</p>
-                <p>{settings.accountantName}</p>
-              </div>
-              <div>
-                <p className="font-semibold uppercase mb-1">Người lập</p>
-                <p>{settings.creatorName}</p>
-              </div>
-            </div>
 
             <Button type="submit" className={`w-full ${editingTx ? 'bg-amber-600 hover:bg-amber-700' : ''}`} size="lg">
               <Save className="h-4 w-4 mr-2" /> {editingTx ? `Cập nhật ${title}` : `Lưu ${title}`}
