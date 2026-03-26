@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { getTransactions, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { Search, Trash2, Pencil, FileText, X } from 'lucide-react';
+import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TransactionListProps {
@@ -30,6 +30,7 @@ function formatDate(dateStr: string) {
 
 export function TransactionList({ type, title, personLabel, onChanged, refreshKey, onSelectForEdit }: TransactionListProps) {
   const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const transactions = useMemo(() => {
     return getTransactions().filter(t => t.type === type);
@@ -61,7 +62,21 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
   return (
     <div className="max-w-5xl mx-auto mt-8 no-print">
-      <Card className="border-border shadow-sm overflow-hidden">
+      {/* Toggle button */}
+      <button
+        onClick={() => setIsOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-3 rounded-lg bg-card border border-border shadow-sm hover:bg-muted/40 transition-colors mb-0 group"
+      >
+        <div className="flex items-center gap-2.5">
+          <List className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Danh sách {title.toLowerCase()}</span>
+          <Badge variant="secondary" className="text-xs px-1.5 py-0 font-medium">{transactions.length}</Badge>
+        </div>
+        {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+
+      {isOpen && (
+      <Card className="border-border shadow-sm overflow-hidden rounded-t-none border-t-0">
         {/* Header */}
         <CardHeader className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -215,6 +230,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
