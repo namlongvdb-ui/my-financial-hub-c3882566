@@ -76,7 +76,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
 
       {/* Date */}
       <div style={{ textAlign: 'right', margin: '24px 0 8px', fontStyle: 'italic', fontSize: '13px' }}>
-        <p style={{ margin: 0 }}>.............., Ngày {d.getDate()} tháng {d.getMonth() + 1} năm {d.getFullYear()}</p>
+        <p style={{ margin: 0 }}>.............., Ngày......tháng.......năm........</p>
       </div>
 
       {/* Signatures */}
