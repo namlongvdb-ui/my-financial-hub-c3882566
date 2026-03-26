@@ -34,8 +34,16 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '25px 35px' }}>
-      <p style={{ fontWeight: 'bold', margin: 0, fontSize: '13px' }}>{settings.orgName.toUpperCase()}</p>
-      <p style={{ fontWeight: 'bold', margin: '0 0 12px', fontSize: '13px' }}>{settings.orgSubName.toUpperCase()}</p>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div style={{ textAlign: 'center', width: '60%' }}>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
+        </div>
+        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
+          <p style={{ margin: 0 }}>Mẫu số: C41-BB</p>
+        </div>
+      </div>
 
       <div style={{ height: '16px' }}></div>
 
