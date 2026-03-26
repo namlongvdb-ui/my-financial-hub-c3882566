@@ -177,15 +177,9 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               <Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Nội dung chi tiết..." rows={3} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-muted-foreground text-xs">Số tiền (VNĐ)</Label>
-                <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="text-lg font-semibold" />
-              </div>
-              <div>
-                <Label className="text-muted-foreground text-xs">Người duyệt</Label>
-                <Input value={form.approver} onChange={e => setForm({ ...form, approver: e.target.value })} />
-              </div>
+            <div>
+              <Label className="text-muted-foreground text-xs">Số tiền (VNĐ)</Label>
+              <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="text-lg font-semibold" />
             </div>
 
             {amount > 0 && (
