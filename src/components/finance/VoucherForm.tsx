@@ -12,6 +12,37 @@ import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
 
+
+function DepartmentCombobox({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
+  const [open, setOpen] = useState(false);
+  const filtered = options.filter(o => o.toLowerCase().includes(value.toLowerCase()));
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="Chọn hoặc nhập đơn vị..."
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md max-h-40 overflow-auto">
+          {filtered.map(opt => (
+            <div
+              key={opt}
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-accent"
+              onMouseDown={() => { onChange(opt); setOpen(false); }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface VoucherFormProps {
   type: 'thu' | 'chi';
   onSaved?: () => void;
