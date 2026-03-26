@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -155,8 +156,17 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
             </div>
 
             <div>
-              <Label className="text-muted-foreground text-xs">Bộ phận</Label>
-              <Input value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} />
+              <Label className="text-muted-foreground text-xs">Đơn vị</Label>
+              <Select value={form.department} onValueChange={val => setForm({ ...form, department: val })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn đơn vị..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {settings.unionGroups.map(g => (
+                    <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
