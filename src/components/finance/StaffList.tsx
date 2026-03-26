@@ -232,11 +232,9 @@ export function StaffList() {
       </Card>
 
       {/* Print view */}
-      {showPrint && (
-        <div className="hidden print:block">
-          <PrintStaffList />
-        </div>
-      )}
+      <div className="print-only">
+        <PrintStaffList />
+      </div>
     </div>
   );
 }
