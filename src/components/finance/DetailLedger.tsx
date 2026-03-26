@@ -74,13 +74,14 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
+                 <TableRow className="bg-muted/50">
                   <TableHead className="text-center w-28">Ngày CT</TableHead>
                   <TableHead className="text-center w-20">Số CT</TableHead>
                   <TableHead className="text-right w-28">Số tiền</TableHead>
                   <TableHead className="max-w-xs">Nội dung</TableHead>
                   <TableHead className="text-center w-16">Loại</TableHead>
-                  <TableHead className="text-center w-16">TK</TableHead>
+                  <TableHead className="text-center w-20">TK Nợ</TableHead>
+                  <TableHead className="text-center w-20">TK Có</TableHead>
                   <TableHead className="w-28">Họ tên</TableHead>
                   <TableHead className="w-40">Đơn vị</TableHead>
                   <TableHead className="text-center w-24">Thao tác</TableHead>
