@@ -64,7 +64,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
       {/* Signatures */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '50%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM.BCH CĐCS</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM.BCH CĐ NHPT Chi nhánh</p>
           <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Chủ Tịch</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '60px' }}></p>
