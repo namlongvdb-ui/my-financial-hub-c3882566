@@ -163,9 +163,13 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               <Input value={form.personName} onChange={e => setForm({ ...form, personName: e.target.value })} placeholder="Nhập họ tên..." />
             </div>
 
-            <div>
+            <div className="relative">
               <Label className="text-muted-foreground text-xs">Đơn vị</Label>
-              <Input value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} placeholder="Tổ CĐ BP..." />
+              <DepartmentCombobox
+                value={form.department}
+                onChange={(val) => setForm({ ...form, department: val })}
+                options={settings.unionGroups.map(g => g.name)}
+              />
             </div>
 
             <div>
