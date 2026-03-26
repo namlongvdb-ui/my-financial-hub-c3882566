@@ -63,18 +63,21 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
 
       {/* Signatures */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
+        {/* Bên trái: Đại diện BCH Công đoàn Chi nhánh */}
         <div style={{ width: '50%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM.BCH CĐ NHPT Chi nhánh</p>
-          <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Chủ Tịch</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>{leftSignatureTitle}</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.leaderName || ''}</p>
+          <div style={{ height: '60px' }}></div>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{leftSignatureName}</p>
         </div>
+
+        {/* Bên phải: Tổ công đoàn */}
         <div style={{ width: '50%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM. Tổ công đoàn</p>
           <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Tổ trưởng</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <p style={{ minHeight: '60px' }}></p>
+          <div style={{ height: '60px' }}></div>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{groupLeaderName}</p>
         </div>
       </div>
