@@ -8,10 +8,10 @@ interface AppSidebarProps {
 
 const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = [
   { view: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
-  { view: 'phieu-thu', label: 'Phiếu Thu', icon: FileInput },
-  { view: 'phieu-chi', label: 'Phiếu Chi', icon: FileOutput },
   { view: 'phieu-tham-hoi', label: 'Phiếu Thăm Hỏi', icon: Heart },
   { view: 'de-nghi-thanh-toan', label: 'Đề Nghị Thanh Toán', icon: FileText },
+  { view: 'phieu-thu', label: 'Phiếu Thu', icon: FileInput },
+  { view: 'phieu-chi', label: 'Phiếu Chi', icon: FileOutput },
   { view: 'so-quy', label: 'Sổ Quỹ', icon: BookOpen },
   { view: 'so-chi-tiet', label: 'Sổ Chi Tiết', icon: ClipboardList },
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
