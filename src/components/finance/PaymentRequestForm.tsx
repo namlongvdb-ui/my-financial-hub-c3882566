@@ -212,7 +212,7 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
     <Input 
       value={form.times} 
       onChange={e => setForm({ ...form, times: e.target.value })} 
-      placeholder="1" 
+      placeholder="" 
       className="h-12 text-center font-mono" 
     />
   </div>
