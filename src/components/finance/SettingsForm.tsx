@@ -19,7 +19,7 @@ const fields: { key: keyof OrgSettings; label: string; placeholder: string; type
   { key: 'accountantName', label: 'Phụ trách kế toán', placeholder: 'Họ tên kế toán' },
   { key: 'treasurerName', label: 'Thủ quỹ', placeholder: 'Họ tên thủ quỹ' },
   { key: 'creatorName', label: 'Người lập', placeholder: 'Họ tên người lập' },
-  { key: 'defaultAccountCode', label: 'Tài khoản kế toán', placeholder: '111' },
+  { key: 'defaultAccountCode', label: 'Tài khoản kế toán', placeholder: '' },
   { key: 'openingBalance', label: 'Số dư đầu kỳ (VNĐ)', placeholder: '50000000', type: 'number' },
 ];
 
