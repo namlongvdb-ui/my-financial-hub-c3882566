@@ -12,8 +12,9 @@ import {
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
 } from '@/lib/staff-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2 } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
+import { PrintStaffList } from './PrintStaffList';
 
 const emptyStaff: Omit<StaffMember, 'id'> = {
   fullName: '', department: '', position: '', birthDate: '', gender: 'nam',
