@@ -44,7 +44,6 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
         </div>
         <div style={{ textAlign: 'center', width: '40%', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu số: C41-BB</p>
-          <p style={{ margin: '2px 0' }}>Quyển số:........</p>
         </div>
       </div>
 
@@ -61,6 +60,7 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
 
       {/* Nợ / Có */}
       <div style={{ textAlign: 'right', fontSize: '13px', marginBottom: '12px' }}>
+        <p style={{ margin: '2px 0' }}>Quyển số:........</p>
         <p style={{ margin: '2px 0' }}>Nợ: {type === 'thu' ? '111' : (data.accountCode || '.................')}</p>
         <p style={{ margin: '2px 0' }}>Có: {type === 'chi' ? '111' : (data.accountCode || '.................')}</p>
       </div>
