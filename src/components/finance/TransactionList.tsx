@@ -230,6 +230,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
