@@ -71,7 +71,7 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       {/* 4. Nội dung chính */}
       <div style={{ lineHeight: '1.8', fontSize: '14px' }}>
         <p style={labelStyle}>Họ và tên người đề nghị thanh toán: <span style={{ fontWeight: 500 }}>{data.requesterName || '...................................'}</span></p>
-        <p style={labelStyle}>Bộ phận: <span style={{ fontWeight: 500 }}>{data.department || '...................................'}</span></p>
+        <p style={labelStyle}>Đơn vị: <span style={{ fontWeight: 500 }}>{data.department || '...................................'}</span></p>
         <p style={labelStyle}>Nội dung thanh toán: <span style={{ fontWeight: 500 }}>{data.content || '...................................'}</span>{data.times ? ` (Lần ${data.times}).` : ''}</p>
         <p style={labelStyle}>
           Số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} đ` : '.................'}</span>
