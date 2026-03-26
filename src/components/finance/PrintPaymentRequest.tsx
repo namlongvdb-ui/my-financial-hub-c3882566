@@ -38,26 +38,12 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       backgroundColor: '#fff' 
     }}>
       
-      {/* 1. Header: Dùng Table và KHÔNG dùng nowrap để tránh dàn hàng ngang */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
-        <tbody>
-          <tr>
-            <td style={{ width: '65%', verticalAlign: 'top' }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                textAlign: 'center',
-                maxWidth: '280px'
-              }}>
-                <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 2px 0', lineHeight: '1.2' }}>
-                  {settings.orgName.toUpperCase()}
-                </p>
-                <p style={{ fontWeight: 'bold', fontSize: '11px', margin: 0, lineHeight: '1.2' }}>
-                  {settings.orgSubName.toUpperCase()}
-                </p>
-              </div>
-            </td>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgSubName.toUpperCase()}</p>
+        </div>
             <td style={{ width: '35%', verticalAlign: 'top', textAlign: 'right' }}>
               <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>Mẫu số C37- HĐ</p>
             </td>
