@@ -37,7 +37,7 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
         <div>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH</p>
-          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>      PHÒNG GD CAO BẰNG           </p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 1 }}>PHÒNG GD CAO BẰNG</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
@@ -73,8 +73,8 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       {(data.bankAccount || data.bankAccountName || data.bankName) && (
         <div style={{ fontStyle: 'italic', textAlign: 'left', lineHeight: '1.7', margin: '14px 0' }}>
           <p style={{ margin: '3px 0' }}>Thông tin Chuyển khoản: Số TK: {data.bankAccount || '...............'}</p>
-          <p style={{ margin: '3px 0' }}>Tên TK: {data.bankAccountName || '...............'}</p>
-          <p style={{ margin: '3px 0' }}>Tại NH: {data.bankName || '...............'}</p>
+          <p style={{ margin: '6px 0' }}>Tên TK: {data.bankAccountName || '...............'}</p>
+          <p style={{ margin: '6px 0' }}>Tại NH: {data.bankName || '...............'}</p>
         </div>
       )}
 
