@@ -181,7 +181,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               </div>
               <div>
                 <Label className="text-muted-foreground text-xs">
-                  Mã TK ({type === 'thu' ? 'Có' : 'Nợ'})
+                  TK đối ứng ({type === 'chi' ? 'Nợ' : 'Có'})
                 </Label>
                 <Input value={form.accountCode} onChange={e => setForm({ ...form, accountCode: e.target.value })} placeholder={settings.defaultAccountCode} />
               </div>
