@@ -38,32 +38,19 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       backgroundColor: '#fff' 
     }}>
       
-      {/* 1. Header: Sử dụng Table để "khóa" vị trí tuyệt đối, chống tràn lề */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', border: 'none', marginBottom: '10px' }}>
-        <tbody>
-          <tr>
-            <td style={{ width: '65%', verticalAlign: 'top', border: 'none', padding: 0 }}>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                textAlign: 'center',
-                maxWidth: '300px' // Giới hạn để chữ tự xuống dòng, không đẩy ngang
-              }}>
-                <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 2px 0', lineHeight: '1.2' }}>
-                  {settings.orgName.toUpperCase()}
-                </p>
-                <p style={{ fontWeight: 'bold', fontSize: '11px', margin: '0 0 2px 0', lineHeight: '1.2' }}>
-                  {settings.orgSubName.toUpperCase()}
-                </p>
-              </div>
-            </td>
-            <td style={{ width: '35%', verticalAlign: 'top', textAlign: 'right', border: 'none', padding: 0 }}>
-              <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>Mẫu số C37- HĐ</p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgSubName.toUpperCase()}</p>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: '12px' }}>
+          <p style={{ margin: 0 }}>Mẫu: C37-HĐ</p>
+        </div>
+      </div>
+
+      <div style={{ height: '16px' }}></div>
+
 
       <div style={{ height: '16px' }}></div>
 
