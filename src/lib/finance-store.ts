@@ -5,17 +5,17 @@ const BALANCE_KEY = 'union-finance-opening-balance';
 const SETTINGS_KEY = 'union-finance-settings';
 
 const defaultSettings: OrgSettings = {
-  orgName: 'CĐ NHPT Chi nhánh KV Bắc Đông Bắc',
-  orgSubName: 'Tổ CĐ Bộ phận Kế toán – Hành chính',
+  orgName: 'CÔNG ĐOÀN NHPT VIỆT NAM',
+  orgSubName: 'CÔNG ĐOÀN NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC',
   leaderName: 'Phí Quang Chiến',
   accountantName: 'Lê Thị Thu Hương',
   creatorName: 'Lê Thị Thu Hương',
-  treasurerName: 'Nguyễn Thị Yến',
+  treasurerName: 'Nguyễn Thị Yên',
   unionGroups: [
-    { name: 'Tổ CĐ BP Kế toán – Hành chính', leaderName: 'Phí Quang Chiến' },
+    { name: 'Tổ CĐ BP Kế toán – Hành chính, PGD Cao Bằng', leaderName: 'Trần Nam Long' },
   ],
-  defaultAccountCode: '111',
-  openingBalance: 50000000,
+  defaultAccountCode: '',
+  openingBalance: '',
 };
 
 export function getOrgSettings(): OrgSettings {
@@ -128,47 +128,5 @@ export function numberToVietnameseWords(num: number): string {
 
 function getSampleData(): Transaction[] {
   return [
-    {
-      id: '1',
-      date: '2026-01-22',
-      voucherNo: 'PC001',
-      type: 'chi',
-      amount: 200000,
-      description: 'Thăm bổ sung cho vay bù đắp khó khăn do bệnh suy hô hấp cấp',
-      personName: 'Trần Nam Long',
-      department: 'Tổ CĐ BP Kế toán - Hành chính',
-      accountCode: '111',
-      approver: 'Phí Quang Chiến',
-      attachments: 1,
-      createdAt: '2026-01-22T00:00:00Z',
-    },
-    {
-      id: '2',
-      date: '2026-01-22',
-      voucherNo: 'PC002',
-      type: 'chi',
-      amount: 200000,
-      description: 'Phan Văn Bình bị áp xe da nhọt và cụm nhọt ở mặt phải điều trị tại bệnh viện',
-      personName: 'Trần Nam Long',
-      department: 'Tổ CĐ BP Kế toán - Hành chính',
-      accountCode: '112',
-      approver: 'Phí Quang Chiến',
-      attachments: 1,
-      createdAt: '2026-01-22T00:00:00Z',
-    },
-    {
-      id: '3',
-      date: '2026-03-13',
-      voucherNo: 'PC003',
-      type: 'chi',
-      amount: 2584400,
-      description: 'Thanh toán chi phí tổ chức ngày Quốc tế Phụ Nữ 08/03',
-      personName: 'Trần Nam Long',
-      department: 'Tổ CĐ BP Kế toán - Hành chính',
-      accountCode: '111',
-      approver: 'Phí Quang Chiến',
-      attachments: 1,
-      createdAt: '2026-03-13T00:00:00Z',
-    },
   ];
 }
