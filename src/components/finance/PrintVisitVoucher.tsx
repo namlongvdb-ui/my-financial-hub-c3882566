@@ -24,14 +24,13 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const selectedGroup = settings.unionGroups.find(g => g.name === data.unionGroupName);
   const groupLeaderName = selectedGroup?.leaderName || settings.unionGroups[0]?.leaderName || '';
 
-  // 2. ĐỊNH NGHĨA BIẾN BỊ THIẾU (Logic theo yêu cầu của Long)
-  // Kiểm tra nếu là tổ Kế hoạch - Tín dụng
-  const isKeHoachTinDung = data.unionGroupName === "Tổ CĐ BP Kế Hoạch - Tín dụng, PGD Cao Bằng";
+  // 2. LOGIC CẢI TIẾN: Kiểm tra tên tổ linh hoạt hơn
+  // Sử dụng .includes để tránh lỗi nếu gõ thừa/thiếu dấu phẩy hoặc địa danh
+  const currentGroupName = data.unionGroupName || "";
+  const isKeHoachTinDung = currentGroupName.includes("Kế Hoạch - Tín dụng");
   
-  // Khai báo chức danh bên trái
+  // Khai báo chức danh và tên dựa trên điều kiện
   const leftSignatureTitle = isKeHoachTinDung ? "Ủy viên BCH CĐ" : "Chủ Tịch";
-  
-  // Khai báo tên người ký bên trái
   const leftSignatureName = isKeHoachTinDung ? "Trần Nam Long" : (settings.leaderName || '');
 
   const labelStyle: React.CSSProperties = { margin: '8px 0', lineHeight: '1.7' };
@@ -77,17 +76,17 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
 
       {/* Date */}
       <div style={{ textAlign: 'right', margin: '24px 0 8px', fontStyle: 'italic', fontSize: '13px' }}>
-        <p style={{ margin: 0 }}>.............., Ngày...... tháng...... năm......</p>
+        <p style={{ margin: 0 }}>.............., Ngày {d.getDate()} tháng {d.getMonth() + 1} năm {d.getFullYear()}</p>
       </div>
 
       {/* Signatures */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
-        {/* Bên trái: Đại diện BCH Công đoàn Chi nhánh */}
+        {/* Bên trái: Thay đổi linh hoạt theo tổ */}
         <div style={{ width: '50%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM.BCH CĐ NHPT Chi nhánh</p>
           <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>{leftSignatureTitle}</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <div style={{ height: '60px' }}></div>
+          <div style={{ height: '70px' }}></div>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{leftSignatureName}</p>
         </div>
 
@@ -96,7 +95,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>TM. Tổ công đoàn</p>
           <p style={{ fontWeight: 'bold', margin: '0 0 2px' }}>Tổ trưởng</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <div style={{ height: '60px' }}></div>
+          <div style={{ height: '70px' }}></div>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{groupLeaderName}</p>
         </div>
       </div>
