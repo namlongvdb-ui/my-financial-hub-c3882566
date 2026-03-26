@@ -7,26 +7,33 @@ const SETTINGS_KEY = 'union-finance-settings';
 const defaultSettings: OrgSettings = {
   orgName: 'CÔNG ĐOÀN NHPT VIỆT NAM',
   orgSubName: 'CÔNG ĐOÀN NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC',
-  leaderName: 'Phí Quang Chiến',
+  leaderName: 'Phí Quang Chiến', // <--- Đây là Lãnh đạo đơn vị (Không đổi)
   accountantName: 'Lê Thị Thu Hương',
   creatorName: 'Lê Thị Thu Hương',
   treasurerName: 'Nguyễn Thị Yên',
   unionGroups: [
-    { name: 'Tổ CĐ BP Kế toán – Hành chính, PGD Cao Bằng', unionLeaderName: 'Trần Nam Long' },
+    { 
+      name: 'Tổ CĐ BP Kế toán – Hành chính, PGD Cao Bằng', 
+      leaderName: 'Trần Nam Long' // <--- Đây là Tổ trưởng (Đổi key cho đồng bộ với các hàm xử lý mảng)
+    },
   ],
   defaultAccountCode: '',
-  openingBalance: '',
+  openingBalance: 0,
 };
 
 export function getOrgSettings(): OrgSettings {
   const stored = localStorage.getItem(SETTINGS_KEY);
   if (stored) {
     const parsed = JSON.parse(stored);
-    if (!parsed.unionGroups && parsed.unionLeaderName) {
-      parsed.unionGroups = [{ name: 'Tổ CĐ', leaderName: parsed.unionLeaderName }];
-      delete parsed.unionLeaderName;
+    
+    // Logic chuyển đổi dữ liệu cũ nếu có
+    if (parsed.unionGroups && parsed.unionGroups.length > 0) {
+      parsed.unionGroups = parsed.unionGroups.map((g: any) => ({
+        name: g.name,
+        leaderName: g.leaderName || g.unionLeaderName || '' // Chấp nhận cả 2 cách viết cũ và mới
+      }));
     }
-    delete parsed.chiefAccountantName;
+
     return { ...defaultSettings, ...parsed };
   }
   return defaultSettings;
