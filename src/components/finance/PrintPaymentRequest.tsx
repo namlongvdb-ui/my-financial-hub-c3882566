@@ -123,7 +123,7 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Chủ tịch Công đoàn</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Thủ trưởng đơn vị</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '65px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.unionGroups[0]?.leaderName || ''}</p>
