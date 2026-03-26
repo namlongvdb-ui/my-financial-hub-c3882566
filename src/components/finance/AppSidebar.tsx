@@ -59,15 +59,10 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
       </nav>
 
       {/* Copyright với hiệu ứng chữ chạy từ phải sang trái */}
-      <div className="py-2 px-1 border-t border-white/10 bg-black/20">
-        <marquee 
-          behavior="scroll" 
-          direction="left" 
-          scrollamount="3" 
-          className="text-[11px] text-blue-100 font-light"
-        >
+      <div className="py-2 px-1 border-t border-white/10 bg-black/20 overflow-hidden">
+        <div className="text-[11px] text-blue-100 font-light whitespace-nowrap animate-marquee">
           Copyright by Trần Nam Long VDB-Chi nhánh KV Bắc Đông Bắc, PGD Cao Bằng
-        </marquee>
+        </div>
       </div>
     </aside>
   );
