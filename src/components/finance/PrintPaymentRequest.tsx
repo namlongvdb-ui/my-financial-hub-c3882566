@@ -48,19 +48,14 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
                 flexDirection: 'column', 
                 alignItems: 'center', 
                 textAlign: 'center',
-                maxWidth: '280px' // Khóa độ rộng để ép chữ xuống dòng nếu quá dài
+                maxWidth: '280px'
               }}>
                 <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 2px 0', lineHeight: '1.2' }}>
                   {settings.orgName.toUpperCase()}
                 </p>
-                <p style={{ fontWeight: 'bold', fontSize: '11px', margin: '0 0 2px 0', lineHeight: '1.2' }}>
+                <p style={{ fontWeight: 'bold', fontSize: '11px', margin: 0, lineHeight: '1.2' }}>
                   {settings.orgSubName.toUpperCase()}
                 </p>
-                {settings.orgLine3 && (
-                  <p style={{ fontWeight: 'bold', fontSize: '11px', margin: 0, lineHeight: '1.2' }}>
-                    {settings.orgLine3.toUpperCase()}
-                  </p>
-                )}
               </div>
             </td>
             <td style={{ width: '35%', verticalAlign: 'top', textAlign: 'right' }}>
