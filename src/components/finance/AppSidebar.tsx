@@ -21,7 +21,7 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
   return (
     <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col shrink-0 no-print">
       <div className="p-5 border-b border-sidebar-border">
-        <h1 className="text-lg font-bold text-sidebar-primary-foreground tracking-tight">Tài Chính</h1>
+        <h1 className="text-lg font-bold text-sidebar-primary-foreground tracking-tight">Quản Lý Tài Chính</h1>
         <p className="text-xs text-sidebar-foreground/60 mt-0.5">Công Đoàn</p>
       </div>
       <nav className="flex-1 p-3 space-y-1">
@@ -44,7 +44,7 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
         })}
       </nav>
       <div className="p-4 border-t border-sidebar-border text-xs text-sidebar-foreground/40">
-        © 2026 CĐ NHPT
+        © Trần Nam Long VDB-Chi nhánh KV Bắc Đông Bắc, PGD Cao Bằng
       </div>
     </aside>
   );
