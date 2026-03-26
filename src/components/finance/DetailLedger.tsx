@@ -122,7 +122,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
                 })}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
                       Chưa có dữ liệu
                     </TableCell>
                   </TableRow>
