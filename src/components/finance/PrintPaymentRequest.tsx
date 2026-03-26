@@ -69,34 +69,37 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
         </p>
       </div>
 
-     {/* Bank info - Căn lề thẳng hàng tuyệt đối không cần sửa index.css */}
+   {/* Bank info - Căn lề chuẩn theo mẫu tt.bmp mà không lỗi lề phải */}
 {(data.bankAccount || data.bankAccountName || data.bankName) && (
   <div style={{ 
-    display: 'flex', 
-    justifyContent: 'flex-end', 
     marginTop: '15px',
-    fontFamily: '"Times New Roman", Times, serif' 
+    display: 'flex',
+    fontFamily: '"Times New Roman", Times, serif'
   }}>
+    {/* Khối này chiếm 100% chiều ngang nhưng đẩy nội dung sang phải 
+        bằng cách dùng margin-left: auto và giới hạn độ rộng */}
     <div style={{
+      marginLeft: 'auto', 
+      marginRight: '5%', // Khoảng cách so với lề phải tờ giấy
       display: 'grid',
-      gridTemplateColumns: 'auto auto', // Chia làm 2 cột: Cột nhãn và Cột nội dung
+      gridTemplateColumns: 'auto auto',
       columnGap: '4px',
       rowGap: '2px',
       fontStyle: 'italic',
       fontSize: '14px',
-      lineHeight: '1.4'
+      lineHeight: '1.5'
     }}>
-      {/* Hàng 1 */}
-      <div style={{ textAlign: 'left' }}>Thông tin Chuyển khoản:</div>
-      <div>Số TK: {data.bankAccount || '...............'}</div>
+      {/* Hàng 1: Nhãn và Số TK */}
+      <div style={{ whiteSpace: 'nowrap' }}>Thông tin Chuyển khoản:</div>
+      <div style={{ whiteSpace: 'nowrap' }}>Số TK: {data.bankAccount || '...............'}</div>
 
-      {/* Hàng 2 - Cột đầu để trống để đẩy nội dung sang cột 2 */}
+      {/* Hàng 2: Để trống cột 1 để thẳng hàng với "Số TK" */}
       <div></div>
-      <div>Tên TK: {data.bankAccountName || '...............'}</div>
+      <div style={{ whiteSpace: 'nowrap' }}>Tên TK: {data.bankAccountName || '...............'}</div>
 
       {/* Hàng 3 */}
       <div></div>
-      <div>Tại NH: {data.bankName || '...............'}</div>
+      <div style={{ whiteSpace: 'nowrap' }}>Tại NH: {data.bankName || '...............'}</div>
     </div>
   </div>
 )}
