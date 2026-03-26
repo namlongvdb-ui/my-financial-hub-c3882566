@@ -32,7 +32,7 @@ export function Dashboard({ refreshKey }: { refreshKey?: number }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Tổng quan tài chính</h1>
-          <p className="text-muted-foreground text-sm">{settings.orgName}</p>
+          <p className="text-muted-foreground text-sm">{settings.orgSubName}</p>
         </div>
         <Button variant="outline" onClick={exportFullReportExcel}>
           <Download className="h-4 w-4 mr-1" /> Xuất báo cáo Excel
