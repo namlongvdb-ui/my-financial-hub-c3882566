@@ -1,37 +1,16 @@
-import { useState, useCallback } from 'react';
-import { ViewType } from '@/types/finance';
-import { AppSidebar } from '@/components/finance/AppSidebar';
-import { Dashboard } from '@/components/finance/Dashboard';
-import { VoucherForm } from '@/components/finance/VoucherForm';
-import { VisitVoucherForm } from '@/components/finance/VisitVoucherForm';
-import { PaymentRequestForm } from '@/components/finance/PaymentRequestForm';
-import { CashBook } from '@/components/finance/CashBook';
-import { DetailLedger } from '@/components/finance/DetailLedger';
-import { SettingsForm } from '@/components/finance/SettingsForm';
+// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleSaved = useCallback(() => {
-    setRefreshKey(k => k + 1);
-  }, []);
-
+// IMPORTANT: Fully REPLACE this with your own code
+const PlaceholderIndex = () => {
+  // PLACEHOLDER: Replace this entire return statement with the user's app.
+  // The inline background color is intentionally not part of the design system.
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
-      <main className="flex-1 p-6 overflow-auto">
-        {currentView === 'dashboard' && <Dashboard refreshKey={refreshKey} />}
-        {currentView === 'phieu-thu' && <VoucherForm type="thu" onSaved={handleSaved} refreshKey={refreshKey} />}
-        {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} refreshKey={refreshKey} />}
-        {currentView === 'phieu-tham-hoi' && <VisitVoucherForm onSaved={handleSaved} refreshKey={refreshKey} />}
-        {currentView === 'de-nghi-thanh-toan' && <PaymentRequestForm onSaved={handleSaved} refreshKey={refreshKey} />}
-        {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
-        {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} onSaved={handleSaved} />}
-        {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
-      </main>
+    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
+      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
     </div>
   );
 };
+
+const Index = PlaceholderIndex;
 
 export default Index;
