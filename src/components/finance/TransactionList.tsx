@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { getTransactions, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { Search, Trash2, Pencil, FileText, X } from 'lucide-react';
+import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TransactionListProps {
