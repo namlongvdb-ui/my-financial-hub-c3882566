@@ -188,20 +188,35 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
               <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Nội dung chi tiết..." rows={2} className="resize-none" />
             </div>
 
-            {/* Amount & Times */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                  <DollarSign className="h-3.5 w-3.5" />
-                  Số tiền (VNĐ)
-                </Label>
-                <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="h-12 text-xl font-bold tracking-wide" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs font-medium">Lần thứ</Label>
-                <Input value={form.times} onChange={e => setForm({ ...form, times: e.target.value })} placeholder="1" className="h-12 text-center font-mono" />
-              </div>
-            </div>
+            <div className="grid grid-cols-2 gap-3 items-end"> {/* items-end giúp chân 2 ô nhập luôn thẳng hàng */}
+  {/* Cột 1: Số tiền */}
+  <div className="flex flex-col space-y-1.5"> 
+    <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5 h-4">
+      <DollarSign className="h-3.5 w-3.5" />
+      Số tiền (VNĐ)
+    </Label>
+    <Input 
+      type="number" 
+      value={form.amount} 
+      onChange={e => setForm({ ...form, amount: e.target.value })} 
+      placeholder="0" 
+      className="h-12 text-lg font-bold tracking-wide" // Hạ text-xl xuống text-lg để bớt "phồng" ô
+    />
+  </div>
+
+  {/* Cột 2: Lần thứ */}
+  <div className="flex flex-col space-y-1.5">
+    <Label className="text-muted-foreground text-xs font-medium h-4 flex items-center">
+      Lần thứ
+    </Label>
+    <Input 
+      value={form.times} 
+      onChange={e => setForm({ ...form, times: e.target.value })} 
+      placeholder="1" 
+      className="h-12 text-center font-mono" 
+    />
+  </div>
+</div>
 
             {amount > 0 && (
               <div className="rounded-lg p-3.5 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
