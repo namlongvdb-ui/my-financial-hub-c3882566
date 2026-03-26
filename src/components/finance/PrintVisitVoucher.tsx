@@ -20,21 +20,32 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const d = new Date(data.date);
   const amountWords = data.amount > 0 ? numberToVietnameseWords(data.amount) : 'Không đồng';
 
-  // Logic tìm tên Tổ trưởng
+  // 1. Tìm tên Tổ trưởng của tổ được chọn
   const selectedGroup = settings.unionGroups.find(g => g.name === data.unionGroupName);
   const groupLeaderName = selectedGroup?.leaderName || settings.unionGroups[0]?.leaderName || '';
 
-  // --- LOGIC ĐIỀU KIỆN CHO PHẦN KÝ TÊN BÊN TRÁI ---
+  // 2. ĐỊNH NGHĨA BIẾN BỊ THIẾU (Logic theo yêu cầu của Long)
+  // Kiểm tra nếu là tổ Kế hoạch - Tín dụng
   const isKeHoachTinDung = data.unionGroupName === "Tổ Công đoàn BP Kế Hoạch - Tín dụng";
+  
+  // Khai báo chức danh bên trái
   const leftSignatureTitle = isKeHoachTinDung ? "Ủy viên BCH CĐ" : "Chủ Tịch";
+  
+  // Khai báo tên người ký bên trái
   const leftSignatureName = isKeHoachTinDung ? "Trần Nam Long" : (settings.leaderName || '');
-  // ----------------------------------------------
 
   const labelStyle: React.CSSProperties = { margin: '8px 0', lineHeight: '1.7' };
 
   return (
-    <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '14px', color: '#000', padding: '30px 45px', maxWidth: '720px', margin: '0 auto', backgroundColor: '#fff' }}>
-      
+    <div className="print-voucher" style={{ 
+      fontFamily: 'Times New Roman, serif', 
+      fontSize: '14px', 
+      color: '#000', 
+      padding: '30px 45px', 
+      maxWidth: '720px', 
+      margin: '0 auto',
+      backgroundColor: '#fff' 
+    }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div style={{ textAlign: 'center', width: '60%' }}>
@@ -66,7 +77,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
 
       {/* Date */}
       <div style={{ textAlign: 'right', margin: '24px 0 8px', fontStyle: 'italic', fontSize: '13px' }}>
-        <p style={{ margin: 0 }}>.............., Ngày......tháng......năm......</p>
+        <p style={{ margin: 0 }}>.............., Ngày...... tháng...... năm......</p>
       </div>
 
       {/* Signatures */}
