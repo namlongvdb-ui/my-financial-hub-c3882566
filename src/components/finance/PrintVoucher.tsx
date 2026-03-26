@@ -42,7 +42,7 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
-        <div style={{ textAlign: 'center', width: '40%', fontSize: '12px' }}>
+        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu số: C41-BB</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
       <div style={{ textAlign: 'center', margin: '18px 0 8px' }}>
         <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, letterSpacing: '1px' }}>{title}</h2>
         <p style={{ fontSize: '13px', margin: '4px 0', fontStyle: 'italic' }}>
-          Ngày {day} tháng {month} năm {year}
+          Ngày.......tháng.......năm.......
         </p>
         <p style={{ fontSize: '13px', margin: '2px 0' }}>Số CT: {data.voucherNo}</p>
       </div>
@@ -104,7 +104,7 @@ export function PrintVoucher({ type, data }: PrintVoucherProps) {
       <p style={{ margin: '6px 0' }}>Viết bằng chữ: <span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>{amountWords}</span></p>
 
       <div style={{ textAlign: 'right', margin: '18px 0', fontStyle: 'italic', fontSize: '13px' }}>
-        Ngày {day} tháng {month} năm {year}
+        Ngày.....tháng......năm.......
       </div>
 
       {/* Signatures - Bottom */}
