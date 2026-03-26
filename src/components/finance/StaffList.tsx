@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -8,13 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { StaffMember, StaffSettings } from '@/types/finance';
 import {
-  getStaffList, saveStaffList, addStaff, updateStaff, deleteStaff,
+  getStaffList, addStaff, updateStaff, deleteStaff,
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
 } from '@/lib/staff-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
-import { PrintStaffList } from './PrintStaffList';
+import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
 const emptyStaff: Omit<StaffMember, 'id'> = {
   fullName: '', department: '', position: '', birthDate: '', gender: 'nam',
@@ -28,9 +28,12 @@ export function StaffList() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [printMode, setPrintMode] = useState<'staff' | 'fee' | null>(null);
+  const [feeMonth, setFeeMonth] = useState(new Date().getMonth() + 1);
+  const [feeYear, setFeeYear] = useState(new Date().getFullYear());
+  const [feeDialogOpen, setFeeDialogOpen] = useState(false);
 
   useEffect(() => { setList(getStaffList()); }, []);
-
   const reload = () => setList(getStaffList());
 
   const handleSaveSettings = () => {
@@ -66,6 +69,11 @@ export function StaffList() {
     reload();
   };
 
+  const handlePrint = (mode: 'staff' | 'fee') => {
+    setPrintMode(mode);
+    setTimeout(() => window.print(), 300);
+  };
+
   const totalUnionFee = useMemo(() => {
     return list.reduce((sum, s) => {
       const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
@@ -78,14 +86,49 @@ export function StaffList() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between no-print">
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
           <Users className="h-6 w-6" /> Danh sách cán bộ
         </h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>
             <Printer className="h-4 w-4 mr-1" /> In danh sách
           </Button>
+
+          {/* Monthly fee print dialog */}
+          <Dialog open={feeDialogOpen} onOpenChange={setFeeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Receipt className="h-4 w-4 mr-1" /> In thu đoàn phí
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-xs">
+              <DialogHeader><DialogTitle>In danh sách thu đoàn phí</DialogTitle></DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Tháng</Label>
+                    <Select value={String(feeMonth)} onValueChange={v => setFeeMonth(Number(v))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <SelectItem key={i + 1} value={String(i + 1)}>Tháng {i + 1}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Năm</Label>
+                    <Input type="number" value={feeYear} onChange={e => setFeeYear(Number(e.target.value) || new Date().getFullYear())} />
+                  </div>
+                </div>
+                <Button className="w-full" onClick={() => { setFeeDialogOpen(false); handlePrint('fee'); }}>
+                  <Printer className="h-4 w-4 mr-1" /> In
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* Settings dialog */}
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
@@ -159,7 +202,7 @@ export function StaffList() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng cán bộ</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương tối thiểu</p><p className="text-lg font-semibold text-foreground">{fmt(settings.minimumSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương vùng</p><p className="text-lg font-semibold text-foreground">{fmt(settings.regionalSalary)} ₫</p></CardContent></Card>
@@ -167,7 +210,7 @@ export function StaffList() {
       </div>
 
       {/* Table */}
-      <Card>
+      <Card className="no-print">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
@@ -221,7 +264,7 @@ export function StaffList() {
       </Card>
 
       {/* Formula note */}
-      <Card className="bg-muted/30">
+      <Card className="bg-muted/30 no-print">
         <CardContent className="p-4 text-xs text-muted-foreground space-y-1">
           <p><strong>Công thức tính:</strong></p>
           <p>• Lương BH = (Hệ số lương × Lương vùng) + (Hệ số chức vụ × Lương tối thiểu)</p>
@@ -230,9 +273,13 @@ export function StaffList() {
         </CardContent>
       </Card>
 
-      {/* Print view */}
+      {/* Print views */}
       <div className="print-only">
-        <PrintStaffList />
+        {printMode === 'fee' ? (
+          <PrintMonthlyFee month={feeMonth} year={feeYear} />
+        ) : (
+          <PrintStaffList />
+        )}
       </div>
     </div>
   );

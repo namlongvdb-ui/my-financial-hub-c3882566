@@ -82,30 +82,52 @@
 
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 15mm 20mm !important;
+    size: A4 landscape;
+    margin: 10mm 12mm !important;
   }
 
   body {
     background: white !important;
   }
 
+  /* Hide everything except print-only */
   aside, nav, header, footer, button, .no-print, .Toaster,
   [data-sidebar], [data-sonner-toaster] {
     display: none !important;
   }
 
+  main > *:not(.print-only) {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .print-only {
     display: block !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
+    position: static !important;
     width: 100% !important;
-    z-index: 99999;
     background: white !important;
   }
 
-  .print-voucher, .print-content {
+  .print-content {
+    font-family: "Times New Roman", Times, serif !important;
+    line-height: 1.4 !important;
+    color: black !important;
+  }
+
+  .print-content table {
+    border-collapse: collapse !important;
+  }
+
+  .print-content td,
+  .print-content th {
+    border: 1px solid #000 !important;
+  }
+
+  .print-voucher {
     font-family: "Times New Roman", Times, serif !important;
     line-height: 1.5 !important;
     color: black !important;
