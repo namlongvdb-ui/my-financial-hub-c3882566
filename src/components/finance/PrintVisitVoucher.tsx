@@ -31,11 +31,11 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
     <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '14px', color: '#000', padding: '30px 45px', maxWidth: '720px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div>
+        <div style={{ textAlign: 'center', width: '55%' }}>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgSubName.toUpperCase()}</p>
-          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{(data.unionGroupName || settings.unionGroups[0]?.name || '').toUpperCase()}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{(data.unionGroupName || settings.unionGroups[0]?.name || '').toUpperCase()}</p>
         </div>
-        <div style={{ textAlign: 'right', fontSize: '12px' }}>
+        <div style={{ textAlign: 'center', width: '45%', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu: C11-TLĐ</p>
         </div>
       </div>

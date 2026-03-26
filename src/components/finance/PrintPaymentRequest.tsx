@@ -40,11 +40,11 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div>
+        <div style={{ textAlign: 'center', width: '55%' }}>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
-          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgSubName.toUpperCase()}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
-        <div style={{ textAlign: 'right', fontSize: '12px' }}>
+        <div style={{ textAlign: 'center', width: '45%', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu: C37-HĐ</p>
         </div>
       </div>
