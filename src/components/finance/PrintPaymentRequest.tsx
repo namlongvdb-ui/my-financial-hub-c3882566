@@ -37,44 +37,40 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       margin: '0 auto',
       backgroundColor: '#fff' 
     }}>
-   {/* 1. Header: Sửa lỗi dàn hàng ngang bằng cách dùng Table để cố định vị trí */}
-<div style={{ width: '100%', marginBottom: '20px' }}>
-  <table style={{ width: '100%', borderCollapse: 'collapse', border: 'none' }}>
-    <tbody>
-      <tr>
-        {/* Cụm tên đơn vị bên trái - Chiếm 50% chiều rộng */}
-        <td style={{ width: '50%', verticalAlign: 'top', border: 'none', padding: 0 }}>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            width: 'fit-content' 
-          }}>
-            <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 2px 0', whiteSpace: 'nowrap' }}>
-              CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC
-            </p>
-            <p style={{ fontWeight: 'bold', fontSize: '11px', margin: '0 0 2px 0', whiteSpace: 'nowrap' }}>
-              TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH
-            </p>
-            <p style={{ fontWeight: 'bold', fontSize: '11px', margin: 0, whiteSpace: 'nowrap' }}>
-              PHÒNG GD CAO BẰNG
-            </p>
-          </div>
-        </td>
+      
+      {/* 1. Header: Sử dụng Table để cố định 2 bên, tránh dàn hàng ngang */}
+      <div style={{ width: '100%', marginBottom: '20px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', border: 'none' }}>
+          <tbody>
+            <tr>
+              {/* Cụm tên đơn vị bên trái */}
+              <td style={{ width: '60%', verticalAlign: 'top', border: 'none', padding: 0 }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  width: 'fit-content' 
+                }}>
+                  <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 2px 0', whiteSpace: 'nowrap' }}>
+                    CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC
+                  </p>
+                  <p style={{ fontWeight: 'bold', fontSize: '11px', margin: '0 0 2px 0', whiteSpace: 'nowrap' }}>
+                    TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH
+                  </p>
+                  <p style={{ fontWeight: 'bold', fontSize: '11px', margin: 0, whiteSpace: 'nowrap' }}>
+                    PHÒNG GD CAO BẰNG
+                  </p>
+                </div>
+              </td>
 
-        {/* Cụm mẫu số bên phải - Chiếm 50% chiều rộng */}
-        <td style={{ width: '50%', verticalAlign: 'top', textAlign: 'right', border: 'none', padding: 0 }}>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>Mẫu số C37- HĐ</p>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-  {/* Khối bên phải: Mẫu số (Chiếm khoảng 30% chiều rộng) */}
-  <div style={{ width: '30%', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>
-    <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
-  </div>
-</div>
+              {/* Cụm mẫu số bên phải */}
+              <td style={{ width: '40%', verticalAlign: 'top', textAlign: 'right', border: 'none', padding: 0 }}>
+                <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>Mẫu số C37- HĐ</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       {/* 2. Tiêu đề phiếu */}
       <div style={{ textAlign: 'center', margin: '22px 0 8px' }}>
@@ -95,62 +91,4 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
         <p style={labelStyle}>Họ và tên người đề nghị thanh toán: <span style={{ fontWeight: 500 }}>{data.requesterName || '...................................'}</span></p>
         <p style={labelStyle}>Bộ phận: <span style={{ fontWeight: 500 }}>{data.department || '...................................'}</span></p>
         <p style={labelStyle}>Nội dung thanh toán: <span style={{ fontWeight: 500 }}>{data.content || '...................................'}</span>{data.times ? ` (Lần ${data.times}).` : ''}</p>
-        <p style={labelStyle}>
-          Số tiền: <span style={{ fontWeight: 'bold' }}>{data.amount > 0 ? `${formatCurrency(data.amount)} đ` : '.................'}</span>
-          {' '}Viết bằng chữ: <span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>{amountWords}./.</span>
-        </p>
-      </div>
-
-      {/* 5. Thông tin chuyển khoản - Căn lề chuẩn Grid */}
-      {(data.bankAccount || data.bankAccountName || data.bankName) && (
-        <div style={{ marginTop: '15px', display: 'flex' }}>
-          <div style={{
-            marginLeft: 'auto', 
-            marginRight: '5%',
-            display: 'grid',
-            gridTemplateColumns: 'auto auto',
-            columnGap: '4px',
-            rowGap: '2px',
-            fontStyle: 'italic',
-            fontSize: '14px',
-            lineHeight: '1.5'
-          }}>
-            <div style={{ whiteSpace: 'nowrap' }}>Thông tin Chuyển khoản:</div>
-            <div style={{ whiteSpace: 'nowrap' }}>Số TK: {data.bankAccount || '...............'}</div>
-            <div></div>
-            <div style={{ whiteSpace: 'nowrap' }}>Tên TK: {data.bankAccountName || '...............'}</div>
-            <div></div>
-            <div style={{ whiteSpace: 'nowrap' }}>Tại NH: {data.bankName || '...............'}</div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Chứng từ kèm theo */}
-      <div style={{ fontStyle: 'italic', margin: '12px 0' }}>
-        <p style={{ margin: '4px 0' }}>(Kèm theo {data.attachments || '.....'} chứng từ gốc)</p>
-      </div>
-
-      {/* 7. Chữ ký */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', textAlign: 'center', fontSize: '13px' }}>
-        <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Người đề nghị thanh toán</p>
-          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold', margin: 0 }}>{data.requesterName}</p>
-        </div>
-        <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Phụ trách kế toán</p>
-          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
-        </div>
-        <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Chủ tịch Công đoàn</p>
-          <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
-          <p style={{ minHeight: '60px' }}></p>
-          <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.unionGroups[0]?.leaderName || ''}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+        <p
