@@ -30,6 +30,7 @@ function formatDate(dateStr: string) {
 
 export function TransactionList({ type, title, personLabel, onChanged, refreshKey, onSelectForEdit }: TransactionListProps) {
   const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const transactions = useMemo(() => {
     return getTransactions().filter(t => t.type === type);
