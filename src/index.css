@@ -105,7 +105,7 @@
     background: white !important;
   }
 
-  .print-voucher {
+  .print-voucher, .print-content {
     font-family: "Times New Roman", Times, serif !important;
     line-height: 1.5 !important;
     color: black !important;
