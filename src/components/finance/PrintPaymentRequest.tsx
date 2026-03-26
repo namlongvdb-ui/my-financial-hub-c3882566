@@ -87,7 +87,7 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
       lineHeight: '1.4'
     }}>
       {/* Hàng 1 */}
-      <div style={{ textAlign: 'right' }}>Thông tin Chuyển khoản:</div>
+      <div style={{ textAlign: 'left' }}>Thông tin Chuyển khoản:</div>
       <div>Số TK: {data.bankAccount || '...............'}</div>
 
       {/* Hàng 2 - Cột đầu để trống để đẩy nội dung sang cột 2 */}
