@@ -26,7 +26,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
 
   // 2. ĐỊNH NGHĨA BIẾN BỊ THIẾU (Logic theo yêu cầu của Long)
   // Kiểm tra nếu là tổ Kế hoạch - Tín dụng
-  const isKeHoachTinDung = data.unionGroupName === "Tổ Công đoàn BP Kế Hoạch - Tín dụng, PGD Cao Bằng";
+  const isKeHoachTinDung = data.unionGroupName === "Tổ CĐ BP Kế Hoạch - Tín dụng, PGD Cao Bằng";
   
   // Khai báo chức danh bên trái
   const leftSignatureTitle = isKeHoachTinDung ? "Ủy viên BCH CĐ" : "Chủ Tịch";
