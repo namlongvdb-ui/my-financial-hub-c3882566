@@ -37,7 +37,7 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
         <div>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>CĐ NHPT CHI NHÁNH KV BẮC ĐÔNG BẮC</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>TỔ CĐ BỘ PHẬN KẾ TOÁN – HÀNH CHÍNH</p>
-          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 1 }}>PHÒNG GD CAO BẰNG</p>
+          <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>PHÒNG GD CAO BẰNG</p>
         </div>
         <div style={{ textAlign: 'right', fontSize: '12px' }}>
           <p style={{ margin: 0 }}>Mẫu số C37- HĐ</p>
@@ -69,14 +69,31 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
         </p>
       </div>
 
-      {/* Bank info */}
-      {(data.bankAccount || data.bankAccountName || data.bankName) && (
-        <div style={{ fontStyle: 'italic', textAlign: 'left', lineHeight: '1.7', margin: '14px 0' }}>
-          <p style={{ margin: '3px 0' }}>Thông tin Chuyển khoản: Số TK: {data.bankAccount || '...............'}</p>
-          <p style={{ margin: '6px 0' }}>Tên TK: {data.bankAccountName || '...............'}</p>
-          <p style={{ margin: '6px 0' }}>Tại NH: {data.bankName || '...............'}</p>
-        </div>
-      )}
+      {/* Bank info - Hiển thị đúng theo mẫu tt.bmp */}
+{(data.bankAccount || data.bankAccountName || data.bankName) && (
+  <div style={{ 
+    fontStyle: 'italic', 
+    lineHeight: '1.6', 
+    margin: '15px 0',
+    fontSize: '14px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end', // Đẩy toàn bộ khối sang bên phải
+    paddingRight: '15%'     // Điều chỉnh khoảng cách này để khớp với vị trí trong tờ in
+  }}>
+    <div style={{ textAlign: 'left', minWidth: '300px' }}>
+      <p style={{ margin: '2px 0' }}>
+        Thông tin Chuyển khoản: Số TK: {data.bankAccount || '...............'}
+      </p>
+      <p style={{ margin: '2px 0', paddingLeft: '85px' }}>
+        Tên TK: {data.bankAccountName || '...............'}
+      </p>
+      <p style={{ margin: '2px 0', paddingLeft: '85px' }}>
+        Tại NH: {data.bankName || '...............'}
+      </p>
+    </div>
+  </div>
+)}
 
       {/* Attachments */}
       <div style={{ fontStyle: 'italic', margin: '12px 0' }}>
