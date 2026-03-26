@@ -14,6 +14,7 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = 
   { view: 'phieu-chi', label: 'Phiếu Chi', icon: FileOutput },
   { view: 'so-quy', label: 'Sổ Quỹ', icon: BookOpen },
   { view: 'so-chi-tiet', label: 'Sổ Chi Tiết', icon: ClipboardList },
+  { view: 'danh-sach-can-bo', label: 'Danh Sách Cán Bộ', icon: Users },
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
 ];
 

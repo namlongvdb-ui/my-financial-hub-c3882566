@@ -29,6 +29,7 @@ const Index = () => {
         {currentView === 'phieu-chi' && <VoucherForm type="chi" onSaved={handleSaved} refreshKey={refreshKey} />}
         {currentView === 'so-quy' && <CashBook refreshKey={refreshKey} />}
         {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} onSaved={handleSaved} />}
+        {currentView === 'danh-sach-can-bo' && <StaffList />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
       </main>
     </div>

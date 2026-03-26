@@ -34,7 +34,24 @@ export interface DetailLedgerEntry extends Transaction {
   runningBalance: number;
 }
 
-export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'cai-dat';
+export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'danh-sach-can-bo' | 'cai-dat';
+
+export interface StaffMember {
+  id: string;
+  fullName: string;
+  department: string;
+  position: string;
+  birthDate: string;
+  gender: 'nam' | 'nu';
+  salaryCoefficient: number;
+  positionCoefficient: number;
+}
+
+export interface StaffSettings {
+  minimumSalary: number; // Lương tối thiểu
+  regionalSalary: number; // Lương vùng
+  baseSalary: number; // Lương cơ sở (để tính trần đoàn phí)
+}
 
 export interface OrgSettings {
   orgName: string;
