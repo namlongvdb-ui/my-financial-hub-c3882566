@@ -274,7 +274,7 @@ export function StaffList() {
       </Card>
 
       {/* Print views */}
-      <div className="print-only">
+      <div className="print-only print-landscape">
         {printMode === 'fee' ? (
           <PrintMonthlyFee month={feeMonth} year={feeYear} />
         ) : (
