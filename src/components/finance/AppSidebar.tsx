@@ -54,7 +54,7 @@ export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebar
       {profile && (
         <div className="px-5 py-3 border-b border-white/10 bg-black/5">
           <p className="text-sm font-medium text-white truncate">{profile.full_name}</p>
-          <p className="text-[10px] text-blue-200 truncate">{profile.email}</p>
+          <p className="text-[10px] text-blue-200 truncate">@{profile.username}</p>
         </div>
       )}
 
