@@ -14,16 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      digital_keys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          private_key_encrypted: string
+          public_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          private_key_encrypted: string
+          public_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          private_key_encrypted?: string
+          public_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      document_approvals: {
+        Row: {
+          approver_id: string
+          approver_role: Database["public"]["Enums"]["app_role"]
+          comment: string | null
+          created_at: string
+          id: string
+          signature: string | null
+          signed_at: string | null
+          signed_data: string | null
+          status: Database["public"]["Enums"]["approval_status"]
+          transaction_id: string
+        }
+        Insert: {
+          approver_id: string
+          approver_role: Database["public"]["Enums"]["app_role"]
+          comment?: string | null
+          created_at?: string
+          id?: string
+          signature?: string | null
+          signed_at?: string | null
+          signed_data?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          transaction_id: string
+        }
+        Update: {
+          approver_id?: string
+          approver_role?: Database["public"]["Enums"]["app_role"]
+          comment?: string | null
+          created_at?: string
+          id?: string
+          signature?: string | null
+          signed_at?: string | null
+          signed_data?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          transaction_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          department: string | null
+          full_name: string
+          id: string
+          position: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id?: string
+          position?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          id?: string
+          position?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "accountant" | "leader" | "user"
+      approval_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +270,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "accountant", "leader", "user"],
+      approval_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
