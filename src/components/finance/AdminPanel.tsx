@@ -101,7 +101,7 @@ export function AdminPanel() {
 
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
-      setNewEmail('');
+      setNewUsername('');
       setNewPassword('');
       setNewFullName('');
       setNewRole('ke_toan');
