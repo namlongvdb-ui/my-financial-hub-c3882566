@@ -64,7 +64,7 @@ export function AdminPanel() {
         userMap.set(p.user_id, {
           user_id: p.user_id,
           full_name: p.full_name,
-          email: p.email,
+          username: p.username,
           roles: [],
           has_signature: false,
         });
