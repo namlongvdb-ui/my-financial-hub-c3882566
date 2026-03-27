@@ -224,7 +224,7 @@ export function AdminPanel() {
                 {users.map(u => (
                   <TableRow key={u.user_id}>
                     <TableCell className="font-medium">{u.full_name}</TableCell>
-                    <TableCell>{u.email}</TableCell>
+                    <TableCell>{u.username}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
                         {u.roles.map(r => (
