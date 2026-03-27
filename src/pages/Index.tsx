@@ -10,10 +10,13 @@ import { DetailLedger } from '@/components/finance/DetailLedger';
 import { SettingsForm } from '@/components/finance/SettingsForm';
 import { StaffList } from '@/components/finance/StaffList';
 import { YearClosing } from '@/components/finance/YearClosing';
+import { AdminPanel } from '@/components/finance/AdminPanel';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
+  const { isAdmin } = useAuth();
 
   const handleSaved = useCallback(() => {
     setRefreshKey(k => k + 1);
@@ -32,6 +35,7 @@ const Index = () => {
         {currentView === 'so-chi-tiet' && <DetailLedger refreshKey={refreshKey} onSaved={handleSaved} />}
         {currentView === 'danh-sach-can-bo' && <StaffList />}
         {currentView === 'khoa-so' && <YearClosing onYearChanged={handleSaved} />}
+        {currentView === 'quan-tri' && isAdmin && <AdminPanel />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
       </main>
     </div>
