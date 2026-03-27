@@ -214,7 +214,7 @@ export function AdminPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Họ tên</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Tên đăng nhập</TableHead>
                   <TableHead>Vai trò</TableHead>
                   <TableHead>Chữ ký số</TableHead>
                   <TableHead>Thao tác</TableHead>
