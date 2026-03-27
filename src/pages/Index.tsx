@@ -37,6 +37,7 @@ const Index = () => {
         {currentView === 'danh-sach-can-bo' && <StaffList />}
         {currentView === 'khoa-so' && <YearClosing onYearChanged={handleSaved} />}
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
+        {currentView === 'doi-mat-khau' && <ChangePasswordForm />}
         {currentView === 'quan-tri' && isAdmin && <AdminPanel />}
       </main>
     </div>
