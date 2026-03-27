@@ -68,8 +68,38 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
 
   const [form, setForm] = useState(() => emptyForm(type, settings));
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [printSignatures, setPrintSignatures] = useState<{ signer_name: string; role: string; signed_at: string }[]>([]);
 
   const amount = parseInt(form.amount) || 0;
+
+  const fetchSignaturesForPrint = useCallback(async (voucherNo: string) => {
+    const { data: sigs } = await supabase
+      .from('voucher_signatures')
+      .select('signer_id, signed_at')
+      .eq('voucher_id', voucherNo)
+      .eq('voucher_type', type);
+
+    if (!sigs || sigs.length === 0) {
+      setPrintSignatures([]);
+      return;
+    }
+
+    const signerIds = sigs.map(s => s.signer_id);
+    const [profilesRes, rolesRes] = await Promise.all([
+      supabase.from('profiles').select('user_id, full_name').in('user_id', signerIds),
+      supabase.from('user_roles').select('user_id, role').in('user_id', signerIds),
+    ]);
+
+    setPrintSignatures(sigs.map(s => {
+      const profile = profilesRes.data?.find(p => p.user_id === s.signer_id);
+      const role = rolesRes.data?.find(r => r.user_id === s.signer_id);
+      return {
+        signer_name: profile?.full_name || 'Unknown',
+        role: role?.role || '',
+        signed_at: s.signed_at,
+      };
+    }));
+  }, [type]);
 
   useEffect(() => {
     setForm(emptyForm(type, settings));
