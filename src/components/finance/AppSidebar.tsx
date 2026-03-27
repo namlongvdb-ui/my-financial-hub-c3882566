@@ -1,6 +1,7 @@
 import { ViewType } from '@/types/finance';
-import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck } from 'lucide-react';
+import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck, Shield, LogOut } from 'lucide-react';
 import { getActiveYear, isYearClosed } from '@/lib/finance-store';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AppSidebarProps {
   currentView: ViewType;
@@ -8,7 +9,7 @@ interface AppSidebarProps {
   refreshKey?: number;
 }
 
-const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = [
+const menuItems: { view: ViewType; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
   { view: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
   { view: 'phieu-tham-hoi', label: 'Phiếu Thăm Hỏi', icon: Heart },
   { view: 'de-nghi-thanh-toan', label: 'Đề Nghị Thanh Toán', icon: FileText },
@@ -18,15 +19,17 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType }[] = 
   { view: 'so-chi-tiet', label: 'Sổ Chi Tiết', icon: ClipboardList },
   { view: 'danh-sach-can-bo', label: 'Danh Sách Cán Bộ', icon: Users },
   { view: 'khoa-so', label: 'Khóa Sổ & Kết Chuyển', icon: BookOpenCheck },
+  { view: 'quan-tri', label: 'Quản Trị Người Dùng', icon: Shield, adminOnly: true },
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
 ];
 
 export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebarProps) {
   const activeYear = getActiveYear();
   const closed = isYearClosed(activeYear);
-  // Mã màu xanh BIDV (Thường là #0056a2 hoặc tương đương trong hệ thống nhận diện)
+  const { isAdmin, fullName, signOut } = useAuth();
   const bidvBlue = "#005BA1"; 
-  const bidvLightBlue = "#0071C5";
+
+  const visibleItems = menuItems.filter(item => !item.adminOnly || isAdmin);
 
   return (
     <aside 
@@ -45,11 +48,16 @@ export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebar
           <span className={`inline-block w-2 h-2 rounded-full ${closed ? 'bg-red-400' : 'bg-green-400'}`}></span>
           <span className="text-blue-100">Năm {activeYear} {closed ? '(Đã khóa)' : ''}</span>
         </div>
+        {fullName && (
+          <div className="mt-2 text-xs text-blue-200 truncate">
+            👤 {fullName}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 mt-2">
-        {menuItems.map(item => {
+        {visibleItems.map(item => {
           const active = currentView === item.view;
           return (
             <button
@@ -68,7 +76,18 @@ export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebar
         })}
       </nav>
 
-      {/* Copyright với hiệu ứng chữ chạy từ phải sang trái */}
+      {/* Logout */}
+      <div className="p-3 border-t border-white/10">
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/80 hover:bg-red-600 hover:text-white transition-all"
+        >
+          <LogOut className="h-5 w-5" />
+          Đăng xuất
+        </button>
+      </div>
+
+      {/* Copyright */}
       <div className="py-2 px-1 border-t border-white/10 bg-black/20 overflow-hidden">
         <div className="text-[11px] text-blue-100 font-light whitespace-nowrap animate-marquee">
           Copyright by Trần Nam Long VDB-Chi nhánh KV Bắc Đông Bắc, PGD Cao Bằng
