@@ -34,7 +34,15 @@ export interface DetailLedgerEntry extends Transaction {
   runningBalance: number;
 }
 
-export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'danh-sach-can-bo' | 'cai-dat';
+export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'danh-sach-can-bo' | 'khoa-so' | 'cai-dat';
+
+export interface YearData {
+  year: number;
+  openingBalance: number;
+  closingBalance: number;
+  isClosed: boolean;
+  closedAt?: string;
+}
 
 export interface StaffMember {
   id: string;
