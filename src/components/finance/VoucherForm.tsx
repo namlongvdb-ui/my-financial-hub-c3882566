@@ -295,6 +295,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
             approver: form.approver,
             attachments: form.attachments,
           }}
+          signatures={printSignatures}
         />
       </div>
 
