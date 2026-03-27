@@ -19,7 +19,7 @@ type AppRole = Database['public']['Enums']['app_role'];
 interface UserWithRole {
   user_id: string;
   full_name: string;
-  email: string | null;
+  username: string | null;
   roles: AppRole[];
   has_signature: boolean;
 }
@@ -44,7 +44,7 @@ export function AdminPanel() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
+  const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<AppRole>('ke_toan');
@@ -53,7 +53,7 @@ export function AdminPanel() {
   const fetchUsers = async () => {
     setLoading(true);
     const [profilesRes, rolesRes, sigsRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name, email'),
+      supabase.from('profiles').select('user_id, full_name, username'),
       supabase.from('user_roles').select('user_id, role'),
       supabase.from('digital_signatures').select('user_id').eq('is_active', true),
     ]);
@@ -64,7 +64,7 @@ export function AdminPanel() {
         userMap.set(p.user_id, {
           user_id: p.user_id,
           full_name: p.full_name,
-          email: p.email,
+          username: p.username,
           roles: [],
           has_signature: false,
         });
@@ -88,12 +88,12 @@ export function AdminPanel() {
   useEffect(() => { fetchUsers(); }, []);
 
   const handleCreateUser = async () => {
-    if (!newEmail || !newPassword || !newFullName || !newRole) return;
+    if (!newUsername || !newPassword || !newFullName || !newRole) return;
     setCreating(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { email: newEmail, password: newPassword, full_name: newFullName, role: newRole }
+        body: { username: newUsername, password: newPassword, full_name: newFullName, role: newRole }
       });
 
       if (error) throw error;
@@ -101,7 +101,7 @@ export function AdminPanel() {
 
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
-      setNewEmail('');
+      setNewUsername('');
       setNewPassword('');
       setNewFullName('');
       setNewRole('ke_toan');
@@ -169,8 +169,8 @@ export function AdminPanel() {
                 <Input value={newFullName} onChange={e => setNewFullName(e.target.value)} placeholder="Nguyễn Văn A" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="user@example.com" />
+                <Label>Tên đăng nhập</Label>
+                <Input value={newUsername} onChange={e => setNewUsername(e.target.value)} placeholder="nguyenvana" />
               </div>
               <div className="space-y-2">
                 <Label>Mật khẩu</Label>
@@ -214,7 +214,7 @@ export function AdminPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Họ tên</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Tên đăng nhập</TableHead>
                   <TableHead>Vai trò</TableHead>
                   <TableHead>Chữ ký số</TableHead>
                   <TableHead>Thao tác</TableHead>
@@ -224,7 +224,7 @@ export function AdminPanel() {
                 {users.map(u => (
                   <TableRow key={u.user_id}>
                     <TableCell className="font-medium">{u.full_name}</TableCell>
-                    <TableCell>{u.email}</TableCell>
+                    <TableCell>{u.username}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
                         {u.roles.map(r => (

@@ -46,20 +46,23 @@ Deno.serve(async (req) => {
       })
     }
 
-    const { email, password, full_name, role } = await req.json()
+    const { username, password, full_name, role } = await req.json()
 
-    if (!email || !password || !full_name || !role) {
+    if (!username || !password || !full_name || !role) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    // Convert username to email format
+    const email = `${username}@app.local`
 
     // Create user
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name }
+      user_metadata: { full_name, username }
     })
 
     if (createError) {

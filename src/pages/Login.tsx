@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Mail, Shield } from 'lucide-react';
+import { Lock, User, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuth();
@@ -18,13 +18,15 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Convert username to email format for Supabase auth
+    const email = username.includes('@') ? username : `${username}@app.local`;
     const { error } = await signIn(email, password);
 
     if (error) {
       toast({
         title: 'Đăng nhập thất bại',
         description: error.message === 'Invalid login credentials' 
-          ? 'Email hoặc mật khẩu không đúng' 
+          ? 'Tên đăng nhập hoặc mật khẩu không đúng' 
           : error.message,
         variant: 'destructive',
       });
@@ -46,15 +48,15 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Tên đăng nhập</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="admin"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-9"
                   required
                 />

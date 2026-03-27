@@ -16,33 +16,34 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Check if admin already exists
-    const { data: existingRoles } = await supabaseAdmin
-      .from('user_roles')
-      .select('id')
-      .eq('role', 'admin')
-      .limit(1)
+    const { email, password, username } = await req.json()
+    const loginEmail = email || (username ? `${username}@app.local` : null)
 
-    if (existingRoles && existingRoles.length > 0) {
-      return new Response(JSON.stringify({ error: 'Admin already exists' }), {
+    if (!loginEmail || !password) {
+      return new Response(JSON.stringify({ error: 'Username/email and password required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const { email, password } = await req.json()
+    // Delete existing admin users first
+    const { data: existingRoles } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin')
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: 'Email and password required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+    if (existingRoles) {
+      for (const role of existingRoles) {
+        await supabaseAdmin.auth.admin.deleteUser(role.user_id)
+      }
     }
 
     // Create admin user
+    const fullName = 'Administrator'
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: loginEmail,
       password,
       email_confirm: true,
-      user_metadata: { full_name: 'Administrator' }
+      user_metadata: { full_name: fullName, username: username || 'admin' }
     })
 
     if (createError) {
