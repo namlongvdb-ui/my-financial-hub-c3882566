@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,7 @@ export function StaffList() {
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth() + 1);
   const [feeYear, setFeeYear] = useState(new Date().getFullYear());
   const [feeDialogOpen, setFeeDialogOpen] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setList(getStaffList()); }, []);
   const reload = () => setList(getStaffList());
@@ -69,9 +70,84 @@ export function StaffList() {
     reload();
   };
 
+  const openLandscapePrintWindow = (mode: 'staff' | 'fee') => {
+    const printMarkup = printRef.current?.innerHTML;
+
+    if (!printMarkup) {
+      toast.error('Không lấy được nội dung để in');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=1400,height=900');
+    if (!printWindow) {
+      toast.error('Trình duyệt đang chặn cửa sổ in');
+      return;
+    }
+
+    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách cán bộ';
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!doctype html>
+      <html lang="vi">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>${title}</title>
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 10mm 12mm;
+            }
+
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #fff;
+              color: #000;
+            }
+
+            body {
+              font-family: 'Times New Roman', Times, serif;
+            }
+
+            .print-content {
+              width: 100%;
+              font-family: 'Times New Roman', Times, serif;
+              line-height: 1.4;
+              color: #000;
+            }
+
+            .print-content table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+
+            .print-content td,
+            .print-content th {
+              border: 1px solid #000;
+            }
+          </style>
+        </head>
+        <body>${printMarkup}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+
+    window.setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   const handlePrint = (mode: 'staff' | 'fee') => {
     setPrintMode(mode);
-    setTimeout(() => window.print(), 300);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        openLandscapePrintWindow(mode);
+      });
+    });
   };
 
   const totalUnionFee = useMemo(() => {
@@ -274,7 +350,7 @@ export function StaffList() {
       </Card>
 
       {/* Print views */}
-      <div className="print-only print-landscape">
+      <div ref={printRef} className="print-only print-landscape">
         {printMode === 'fee' ? (
           <PrintMonthlyFee month={feeMonth} year={feeYear} />
         ) : (
