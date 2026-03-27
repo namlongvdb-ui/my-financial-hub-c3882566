@@ -19,7 +19,7 @@ type AppRole = Database['public']['Enums']['app_role'];
 interface UserWithRole {
   user_id: string;
   full_name: string;
-  email: string | null;
+  username: string | null;
   roles: AppRole[];
   has_signature: boolean;
 }
