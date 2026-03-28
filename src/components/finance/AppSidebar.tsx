@@ -1,5 +1,5 @@
 import { ViewType } from '@/types/finance';
-import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck, Shield, LogOut, KeyRound } from 'lucide-react';
+import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck, Shield, LogOut, KeyRound, History } from 'lucide-react';
 import { getActiveYear, isYearClosed } from '@/lib/finance-store';
 import { useAuth } from '@/hooks/useAuth';
 
