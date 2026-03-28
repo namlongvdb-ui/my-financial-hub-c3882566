@@ -116,11 +116,29 @@ export function AdminPanel() {
     setCreating(false);
   };
 
+  const handleResetPassword = async () => {
+    if (!resetTarget || !resetPassword) return;
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: { user_id: resetTarget.user_id, new_password: resetPassword }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: 'Thành công', description: `Đã đặt lại mật khẩu cho ${resetTarget.full_name}` });
+      setResetDialogOpen(false);
+      setResetPassword('');
+      setResetTarget(null);
+    } catch (err: any) {
+      toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
+    }
+    setResetting(false);
+  };
+
   const handleGenerateSignature = async (targetUserId: string, targetName: string) => {
     try {
       const { publicKey, privateKey } = await generateRSAKeyPair();
 
-      // Save public key to database
       const { error } = await supabase.from('digital_signatures').upsert({
         user_id: targetUserId,
         public_key: publicKey,
@@ -130,13 +148,11 @@ export function AdminPanel() {
 
       if (error) throw error;
 
-      // Store private key in localStorage temporarily for the admin to deliver
-      // In production, this should be delivered securely to the user
       storePrivateKey(targetUserId, privateKey);
 
       toast({
         title: 'Đã tạo chữ ký số',
-        description: `Cặp khóa RSA đã được tạo cho ${targetName}. Khóa bí mật đã được lưu tạm trong trình duyệt. Khi ${targetName} đăng nhập trên máy này, khóa sẽ được chuyển sang tài khoản của họ.`,
+        description: `Cặp khóa RSA đã được tạo cho ${targetName}. Khóa bí mật đã được lưu tạm trong trình duyệt.`,
       });
 
       fetchUsers();
