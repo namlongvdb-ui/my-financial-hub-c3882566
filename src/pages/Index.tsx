@@ -12,6 +12,7 @@ import { StaffList } from '@/components/finance/StaffList';
 import { YearClosing } from '@/components/finance/YearClosing';
 import { AdminPanel } from '@/components/finance/AdminPanel';
 import { ChangePasswordForm } from '@/components/finance/ChangePasswordForm';
+import { SignatureHistory } from '@/components/finance/SignatureHistory';
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
