@@ -55,6 +55,8 @@ export function AdminPanel() {
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<AppRole>('ke_toan');
   const [creating, setCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ user_id: string; full_name: string } | null>(null);
+  const [managing, setManaging] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
