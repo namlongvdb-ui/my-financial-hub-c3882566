@@ -289,23 +289,36 @@ export function AdminPanel() {
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
                         {(u.roles.includes('lanh_dao') || u.roles.includes('ke_toan_truong')) && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleGenerateSignature(u.user_id, u.full_name)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleGenerateSignature(u.user_id, u.full_name)}>
                             <Key className="w-3 h-3 mr-1" />
                             {u.has_signature ? 'Tạo lại khóa' : 'Tạo chữ ký số'}
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => { setResetTarget({ user_id: u.user_id, full_name: u.full_name }); setResetDialogOpen(true); }}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => { setResetTarget({ user_id: u.user_id, full_name: u.full_name }); setResetDialogOpen(true); }}>
                           <RotateCcw className="w-3 h-3 mr-1" />
                           Reset MK
                         </Button>
+                        {u.username !== 'admin' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant={u.is_banned ? 'default' : 'outline'}
+                              onClick={() => handleManageUser(u.user_id, u.full_name, u.is_banned ? 'enable' : 'disable')}
+                              disabled={managing}
+                            >
+                              {u.is_banned ? <UserCheck className="w-3 h-3 mr-1" /> : <Ban className="w-3 h-3 mr-1" />}
+                              {u.is_banned ? 'Kích hoạt' : 'Vô hiệu hoá'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteTarget({ user_id: u.user_id, full_name: u.full_name })}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Xoá
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -340,6 +353,26 @@ export function AdminPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xoá tài khoản</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xoá tài khoản <strong>{deleteTarget?.full_name}</strong>? Thao tác này không thể hoàn tác. Toàn bộ dữ liệu liên quan sẽ bị xoá.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Huỷ</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleManageUser(deleteTarget.user_id, deleteTarget.full_name, 'delete')}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {managing ? 'Đang xoá...' : 'Xoá tài khoản'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
