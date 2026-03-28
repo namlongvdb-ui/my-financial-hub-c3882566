@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { generateRSAKeyPair, storePrivateKey } from '@/lib/crypto-utils';
-import { UserPlus, Key, Shield, Users } from 'lucide-react';
+import { UserPlus, Key, Shield, Users, RotateCcw } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
