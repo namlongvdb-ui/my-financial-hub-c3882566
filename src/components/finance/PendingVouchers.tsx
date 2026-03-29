@@ -31,7 +31,7 @@ export function PendingVouchers() {
   const [loading, setLoading] = useState(true);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<PendingVoucher | null>(null);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('');  // kept for UI but not used for key retrieval
   const [signing, setSigning] = useState(false);
 
   const fetchPending = useCallback(async () => {

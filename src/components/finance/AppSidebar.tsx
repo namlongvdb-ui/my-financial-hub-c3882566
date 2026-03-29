@@ -28,7 +28,7 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType; admin
   { view: 'quan-tri', label: 'Quản trị hệ thống', icon: Shield, adminOnly: true },
 ];
 
-export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebarProps) {
+export function AppSidebar({ currentView, onViewChange, refreshKey, notificationBell }: AppSidebarProps) {
   const activeYear = getActiveYear();
   const closed = isYearClosed(activeYear);
   const { isAdmin, profile, signOut } = useAuth();
