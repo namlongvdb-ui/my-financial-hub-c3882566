@@ -7,6 +7,7 @@ interface AppSidebarProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
   refreshKey?: number;
+  notificationBell?: React.ReactNode;
 }
 
 const menuItems: { view: ViewType; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
