@@ -117,17 +117,8 @@ export function PendingVouchers() {
 
       const signerName = profile?.full_name || 'Người ký';
 
-      if (isChiefAccountant) {
-        // Step 2: Kế toán trưởng ký xong → thông báo lãnh đạo
-        await notifyLeader(
-          selectedVoucher.voucher_id,
-          selectedVoucher.voucher_type,
-          getVoucherLabel(selectedVoucher.voucher_type),
-          signerName
-        );
-        toast.success(`Đã ký duyệt. Đang chờ lãnh đạo ký.`);
-      } else if (isLeader) {
-        // Step 3: Lãnh đạo ký xong → đánh dấu hoàn thành + thông báo kế toán
+      if (isLeader) {
+        // Lãnh đạo ký xong → đánh dấu hoàn thành + thông báo người lập
         await supabase.from('pending_vouchers')
           .update({ status: 'signed', signed_at: new Date().toISOString() })
           .eq('id', selectedVoucher.id);
@@ -139,7 +130,7 @@ export function PendingVouchers() {
           getVoucherLabel(selectedVoucher.voucher_type),
           signerName
         );
-        toast.success(`Đã ký duyệt hoàn tất. Kế toán đã được thông báo.`);
+        toast.success(`Đã ký duyệt hoàn tất. Người lập đã được thông báo.`);
       }
 
       setSignDialogOpen(false);
