@@ -153,7 +153,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
       toast.success(`${title} ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
-      addTransaction({
+      const txData = {
         date: form.date,
         voucherNo: form.voucherNo,
         type,
@@ -164,7 +164,15 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
         accountCode: form.accountCode,
         approver: form.approver,
         attachments: form.attachments,
-      });
+      };
+      addTransaction(txData);
+      
+      // Submit for signing and notify signers
+      if (user) {
+        submitVoucherForSigning(form.voucherNo, type, txData, user.id);
+        notifySigners(form.voucherNo, type, getVoucherLabel(type), profile?.full_name || 'Kế toán');
+      }
+      
       toast.success(`${title} ${form.voucherNo} đã được lưu`);
     }
 

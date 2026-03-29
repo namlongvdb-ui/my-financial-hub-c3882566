@@ -78,10 +78,10 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
       toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
-      addTransaction({
+      const txData = {
         date: form.date,
         voucherNo: form.voucherNo,
-        type: 'tham-hoi',
+        type: 'tham-hoi' as const,
         amount,
         description: form.reason,
         personName: form.recipientName,
@@ -91,7 +91,14 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
         attachments: 0,
         recipientName: form.recipientName,
         reason: form.reason,
-      });
+      };
+      addTransaction(txData);
+      
+      if (user) {
+        submitVoucherForSigning(form.voucherNo, 'tham-hoi', txData, user.id);
+        notifySigners(form.voucherNo, 'tham-hoi', getVoucherLabel('tham-hoi'), profile?.full_name || 'Kế toán');
+      }
+      
       toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được lưu`);
     }
 
