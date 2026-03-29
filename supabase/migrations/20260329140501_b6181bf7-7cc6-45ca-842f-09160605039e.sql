@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Signers can update pending vouchers" ON public.pending_vouchers;
+CREATE POLICY "Signers can update pending vouchers" ON public.pending_vouchers FOR UPDATE TO authenticated USING (has_role(auth.uid(), 'lanh_dao'::app_role) OR has_role(auth.uid(), 'ke_toan'::app_role) OR (auth.uid() = created_by));
