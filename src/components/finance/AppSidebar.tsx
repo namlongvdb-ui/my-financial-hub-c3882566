@@ -1,5 +1,5 @@
 import { ViewType } from '@/types/finance';
-import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck, Shield, LogOut, KeyRound, History } from 'lucide-react';
+import { LayoutDashboard, FileInput, FileOutput, Heart, FileText, BookOpen, ClipboardList, Users, Settings, BookOpenCheck, Shield, LogOut, KeyRound, History, PenTool, FileCheck } from 'lucide-react';
 import { getActiveYear, isYearClosed } from '@/lib/finance-store';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -7,6 +7,7 @@ interface AppSidebarProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
   refreshKey?: number;
+  notificationBell?: React.ReactNode;
 }
 
 const menuItems: { view: ViewType; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
@@ -22,10 +23,12 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType; admin
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
   { view: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: KeyRound },
   { view: 'lich-su-ky', label: 'Lịch sử ký duyệt', icon: History },
+  { view: 'cho-ky', label: 'Chứng từ chờ ký', icon: PenTool },
+  { view: 'da-duyet', label: 'Chứng từ đã duyệt', icon: FileCheck },
   { view: 'quan-tri', label: 'Quản trị hệ thống', icon: Shield, adminOnly: true },
 ];
 
-export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebarProps) {
+export function AppSidebar({ currentView, onViewChange, refreshKey, notificationBell }: AppSidebarProps) {
   const activeYear = getActiveYear();
   const closed = isYearClosed(activeYear);
   const { isAdmin, profile, signOut } = useAuth();
@@ -54,9 +57,12 @@ export function AppSidebar({ currentView, onViewChange, refreshKey }: AppSidebar
 
       {/* User info */}
       {profile && (
-        <div className="px-5 py-3 border-b border-white/10 bg-black/5">
-          <p className="text-sm font-medium text-white truncate">{profile.full_name}</p>
-          <p className="text-[10px] text-blue-200 truncate">@{profile.username}</p>
+        <div className="px-5 py-3 border-b border-white/10 bg-black/5 flex items-center justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-white truncate">{profile.full_name}</p>
+            <p className="text-[10px] text-blue-200 truncate">@{profile.username}</p>
+          </div>
+          {notificationBell}
         </div>
       )}
 

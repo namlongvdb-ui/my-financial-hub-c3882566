@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
 function DepartmentCombobox({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
   const [open, setOpen] = useState(false);
@@ -63,6 +65,7 @@ const emptyForm = (type: 'thu' | 'chi', settings: ReturnType<typeof getOrgSettin
 });
 
 export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
+  const { user, profile } = useAuth();
   const title = type === 'thu' ? 'PHIẾU THU' : 'PHIẾU CHI';
   const settings = getOrgSettings();
 
@@ -150,7 +153,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
       toast.success(`${title} ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
-      addTransaction({
+      const txData = {
         date: form.date,
         voucherNo: form.voucherNo,
         type,
@@ -161,7 +164,15 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
         accountCode: form.accountCode,
         approver: form.approver,
         attachments: form.attachments,
-      });
+      };
+      addTransaction(txData);
+      
+      // Submit for signing and notify signers
+      if (user) {
+        submitVoucherForSigning(form.voucherNo, type, txData, user.id);
+        notifySigners(form.voucherNo, type, getVoucherLabel(type), profile?.full_name || 'Kế toán');
+      }
+      
       toast.success(`${title} ${form.voucherNo} đã được lưu`);
     }
 

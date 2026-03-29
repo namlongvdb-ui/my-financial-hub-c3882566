@@ -11,6 +11,8 @@ import { FileText, Printer, Save, X, DollarSign, User, Building2, CreditCard } f
 import { toast } from 'sonner';
 import { PrintPaymentRequest } from './PrintPaymentRequest';
 import { TransactionList } from './TransactionList';
+import { useAuth } from '@/hooks/useAuth';
+import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
 interface PaymentRequestFormProps {
   onSaved?: () => void;
@@ -33,6 +35,7 @@ const emptyForm = (settings: ReturnType<typeof getOrgSettings>) => ({
 });
 
 export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormProps) {
+  const { user, profile } = useAuth();
   const settings = getOrgSettings();
   const [form, setForm] = useState(() => emptyForm(settings));
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
@@ -88,10 +91,10 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
       toast.success(`Đề nghị thanh toán ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
-      addTransaction({
+      const txData = {
         date: form.date,
         voucherNo: form.voucherNo,
-        type: 'de-nghi',
+        type: 'de-nghi' as const,
         amount,
         description: form.content,
         personName: form.requesterName,
@@ -103,7 +106,14 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
         bankAccountName: form.bankAccountName,
         bankName: form.bankName,
         times: form.times,
-      });
+      };
+      addTransaction(txData);
+      
+      if (user) {
+        submitVoucherForSigning(form.voucherNo, 'de-nghi', txData, user.id);
+        notifySigners(form.voucherNo, 'de-nghi', getVoucherLabel('de-nghi'), profile?.full_name || 'Kế toán');
+      }
+      
       toast.success(`Đề nghị thanh toán ${form.voucherNo} đã được lưu`);
     }
 

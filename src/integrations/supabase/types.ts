@@ -41,6 +41,78 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_voucher_id: string | null
+          related_voucher_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_voucher_id?: string | null
+          related_voucher_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_voucher_id?: string | null
+          related_voucher_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pending_vouchers: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          printed_at: string | null
+          signed_at: string | null
+          status: string
+          voucher_data: Json
+          voucher_id: string
+          voucher_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          printed_at?: string | null
+          signed_at?: string | null
+          status?: string
+          voucher_data: Json
+          voucher_id: string
+          voucher_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          printed_at?: string | null
+          signed_at?: string | null
+          status?: string
+          voucher_data?: Json
+          voucher_id?: string
+          voucher_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

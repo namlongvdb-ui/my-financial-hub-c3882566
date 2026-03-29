@@ -13,6 +13,9 @@ import { YearClosing } from '@/components/finance/YearClosing';
 import { AdminPanel } from '@/components/finance/AdminPanel';
 import { ChangePasswordForm } from '@/components/finance/ChangePasswordForm';
 import { SignatureHistory } from '@/components/finance/SignatureHistory';
+import { PendingVouchers } from '@/components/finance/PendingVouchers';
+import { ApprovedVouchers } from '@/components/finance/ApprovedVouchers';
+import { NotificationBell } from '@/components/finance/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
@@ -24,9 +27,18 @@ const Index = () => {
     setRefreshKey(k => k + 1);
   }, []);
 
+  const handleNotificationNavigate = useCallback((view: 'cho-ky' | 'da-duyet') => {
+    setCurrentView(view);
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar currentView={currentView} onViewChange={setCurrentView} refreshKey={refreshKey} />
+      <AppSidebar
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        refreshKey={refreshKey}
+        notificationBell={<NotificationBell onNavigate={handleNotificationNavigate} />}
+      />
       <main className="flex-1 p-6 overflow-auto">
         {currentView === 'dashboard' && <Dashboard refreshKey={refreshKey} />}
         {currentView === 'phieu-tham-hoi' && <VisitVoucherForm onSaved={handleSaved} refreshKey={refreshKey} />}
@@ -40,6 +52,8 @@ const Index = () => {
         {currentView === 'cai-dat' && <SettingsForm onSaved={handleSaved} />}
         {currentView === 'doi-mat-khau' && <ChangePasswordForm />}
         {currentView === 'lich-su-ky' && <SignatureHistory />}
+        {currentView === 'cho-ky' && <PendingVouchers />}
+        {currentView === 'da-duyet' && <ApprovedVouchers />}
         {currentView === 'quan-tri' && isAdmin && <AdminPanel />}
       </main>
     </div>
