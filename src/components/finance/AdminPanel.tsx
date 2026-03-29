@@ -115,7 +115,7 @@ export function AdminPanel() {
       setNewUsername('');
       setNewPassword('');
       setNewFullName('');
-      setNewRole('ke_toan');
+      setNewRole('nguoi_lap');
       fetchUsers();
     } catch (err: any) {
       toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
