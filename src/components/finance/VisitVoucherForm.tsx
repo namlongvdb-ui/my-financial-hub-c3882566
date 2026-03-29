@@ -30,6 +30,7 @@ const emptyForm = (settings: ReturnType<typeof getOrgSettings>) => ({
 });
 
 export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps) {
+  const { user, profile } = useAuth();
   const settings = getOrgSettings();
   const [form, setForm] = useState(() => emptyForm(settings));
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
