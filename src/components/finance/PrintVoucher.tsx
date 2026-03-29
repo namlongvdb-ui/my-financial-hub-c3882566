@@ -100,7 +100,7 @@ export function PrintVoucher({ type, data, signatures = [] }: PrintVoucherProps)
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
-          {signatures.filter(s => s.role === 'nguoi_lap').map((sig, idx) => (
+          {signatures.filter(s => s.role === 'ke_toan').map((sig, idx) => (
             <p key={idx} style={{ fontSize: '10px', color: '#0a7', margin: '4px 0 0' }}>
               ✅ Đã ký số: {new Date(sig.signed_at).toLocaleString('vi-VN')}
             </p>
