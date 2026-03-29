@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, getPrivateKey } from '@/lib/crypto-utils';
-import { getVoucherLabel, notifyCreator } from '@/lib/notification-utils';
+import { getVoucherLabel, notifyCreator, notifyLeader, getUserIdsByRole, getSigningStep } from '@/lib/notification-utils';
 import { toast } from 'sonner';
 import { PenTool, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -26,55 +26,62 @@ interface PendingVoucher {
 }
 
 export function PendingVouchers() {
-  const { user, profile } = useAuth();
+  const { user, profile, hasRole } = useAuth();
   const [vouchers, setVouchers] = useState<PendingVoucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<PendingVoucher | null>(null);
-  const [password, setPassword] = useState('');  // kept for UI but not used for key retrieval
+  const [password, setPassword] = useState('');
   const [signing, setSigning] = useState(false);
+
+  const isChiefAccountant = hasRole('ke_toan_truong');
+  const isLeader = hasRole('lanh_dao');
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
-    // Get vouchers that are pending and not yet signed by this user
+    if (!user) { setLoading(false); return; }
+
+    // Get all pending vouchers
     const { data: pendingData } = await supabase
       .from('pending_vouchers')
       .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
-    if (!pendingData || !user) { setLoading(false); return; }
+    if (!pendingData) { setLoading(false); return; }
 
-    // Check which ones this user already signed
-    const voucherIds = pendingData.map(v => v.voucher_id);
-    const { data: existingSigs } = await supabase
-      .from('voucher_signatures')
-      .select('voucher_id')
-      .eq('signer_id', user.id)
-      .in('voucher_id', voucherIds);
+    // For each voucher, determine signing step and filter based on role
+    const filteredVouchers: PendingVoucher[] = [];
 
-    const signedSet = new Set(existingSigs?.map(s => s.voucher_id) || []);
+    for (const v of pendingData) {
+      const step = await getSigningStep(v.voucher_id);
+
+      // Kế toán trưởng sees vouchers at 'pending' step (not yet signed by anyone)
+      // Lãnh đạo sees vouchers at 'chief_signed' step (chief accountant signed, waiting for leader)
+      if (isChiefAccountant && step === 'pending') {
+        filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
+      } else if (isLeader && step === 'chief_signed') {
+        filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
+      }
+    }
 
     // Get creator names
-    const creatorIds = [...new Set(pendingData.map(v => v.created_by))];
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, full_name')
-      .in('user_id', creatorIds);
+    const creatorIds = [...new Set(filteredVouchers.map(v => v.created_by))];
+    if (creatorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', creatorIds);
 
-    const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+      filteredVouchers.forEach(v => {
+        v.creator_name = profileMap.get(v.created_by) || 'N/A';
+      });
+    }
 
-    const unsigned = pendingData
-      .filter(v => !signedSet.has(v.voucher_id))
-      .map(v => ({
-        ...v,
-        voucher_data: v.voucher_data as any,
-        creator_name: profileMap.get(v.created_by) || 'N/A',
-      }));
-
-    setVouchers(unsigned);
+    setVouchers(filteredVouchers);
     setLoading(false);
-  }, [user]);
+  }, [user, isChiefAccountant, isLeader]);
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
@@ -112,33 +119,33 @@ export function PendingVouchers() {
 
       if (error) throw error;
 
-      // Check if all signers have signed - if so, mark as signed
-      const signerIds = await getActiveSignerIds();
-      const { data: allSigs } = await supabase
-        .from('voucher_signatures')
-        .select('signer_id')
-        .eq('voucher_id', selectedVoucher.voucher_id);
+      const signerName = profile?.full_name || 'Người ký';
 
-      const signedBy = new Set(allSigs?.map(s => s.signer_id) || []);
-      signedBy.add(user.id);
-      const allSigned = signerIds.every(id => signedBy.has(id));
-
-      if (allSigned) {
+      if (isChiefAccountant) {
+        // Step 2: Kế toán trưởng ký xong → thông báo lãnh đạo
+        await notifyLeader(
+          selectedVoucher.voucher_id,
+          selectedVoucher.voucher_type,
+          getVoucherLabel(selectedVoucher.voucher_type),
+          signerName
+        );
+        toast.success(`Đã ký duyệt. Đang chờ lãnh đạo ký.`);
+      } else if (isLeader) {
+        // Step 3: Lãnh đạo ký xong → đánh dấu hoàn thành + thông báo kế toán
         await supabase.from('pending_vouchers')
           .update({ status: 'signed', signed_at: new Date().toISOString() })
           .eq('id', selectedVoucher.id);
+
+        await notifyCreator(
+          selectedVoucher.created_by,
+          selectedVoucher.voucher_id,
+          selectedVoucher.voucher_type,
+          getVoucherLabel(selectedVoucher.voucher_type),
+          signerName
+        );
+        toast.success(`Đã ký duyệt hoàn tất. Kế toán đã được thông báo.`);
       }
 
-      // Notify creator
-      await notifyCreator(
-        selectedVoucher.created_by,
-        selectedVoucher.voucher_id,
-        selectedVoucher.voucher_type,
-        getVoucherLabel(selectedVoucher.voucher_type),
-        profile?.full_name || 'Người ký'
-      );
-
-      toast.success(`Đã ký duyệt ${getVoucherLabel(selectedVoucher.voucher_type)} số ${selectedVoucher.voucher_id}`);
       setSignDialogOpen(false);
       setPassword('');
       setSelectedVoucher(null);
@@ -149,6 +156,8 @@ export function PendingVouchers() {
     setSigning(false);
   };
 
+  const roleLabel = isChiefAccountant ? '(Kế toán trưởng)' : isLeader ? '(Lãnh đạo)' : '';
+
   return (
     <Card className="shadow-lg border-0 ring-1 ring-border">
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-b-2 border-amber-200 dark:border-amber-800">
@@ -156,7 +165,7 @@ export function PendingVouchers() {
           <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
             <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
-          <CardTitle className="text-xl">Chứng từ chờ ký duyệt</CardTitle>
+          <CardTitle className="text-xl">Chứng từ chờ ký duyệt {roleLabel}</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -247,12 +256,4 @@ export function PendingVouchers() {
       </Dialog>
     </Card>
   );
-}
-
-async function getActiveSignerIds(): Promise<string[]> {
-  const { data } = await supabase
-    .from('digital_signatures')
-    .select('user_id')
-    .eq('is_active', true);
-  return data ? [...new Set(data.map(d => d.user_id))] : [];
 }
