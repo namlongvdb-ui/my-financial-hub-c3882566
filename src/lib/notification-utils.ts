@@ -25,8 +25,12 @@ export async function notifyLeader(
   voucherLabel: string,
   creatorName: string
 ) {
-  const leaderIds = await getUserIdsByRole('lanh_dao');
-  if (leaderIds.length === 0) return;
+  const [leaderIds, accountantIds] = await Promise.all([
+    getUserIdsByRole('lanh_dao'),
+    getUserIdsByRole('ke_toan'),
+  ]);
+  const signerIds = [...new Set([...leaderIds, ...accountantIds])];
+  if (signerIds.length === 0) return;
 
   const notifications = leaderIds.map(userId => ({
     user_id: userId,
