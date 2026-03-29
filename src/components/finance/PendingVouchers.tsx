@@ -55,11 +55,8 @@ export function PendingVouchers() {
     for (const v of pendingData) {
       const step = await getSigningStep(v.voucher_id);
 
-      // Kế toán trưởng sees vouchers at 'pending' step (not yet signed by anyone)
-      // Lãnh đạo sees vouchers at 'chief_signed' step (chief accountant signed, waiting for leader)
-      if (isChiefAccountant && step === 'pending') {
-        filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
-      } else if (isLeader && step === 'chief_signed') {
+      // Lãnh đạo sees all pending vouchers
+      if (isLeader && step === 'pending') {
         filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
       }
     }
