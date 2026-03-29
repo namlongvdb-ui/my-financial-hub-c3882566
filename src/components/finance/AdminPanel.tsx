@@ -29,15 +29,13 @@ interface UserWithRole {
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: 'Quản trị viên',
   lanh_dao: 'Lãnh đạo',
-  ke_toan_truong: 'Kế toán trưởng',
-  ke_toan: 'Kế toán',
+  nguoi_lap: 'Người lập',
 };
 
 const ROLE_COLORS: Record<AppRole, string> = {
   admin: 'bg-red-100 text-red-800',
   lanh_dao: 'bg-purple-100 text-purple-800',
-  ke_toan_truong: 'bg-blue-100 text-blue-800',
-  ke_toan: 'bg-green-100 text-green-800',
+  nguoi_lap: 'bg-green-100 text-green-800',
 };
 
 export function AdminPanel() {
