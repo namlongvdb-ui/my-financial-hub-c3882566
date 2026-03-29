@@ -82,24 +82,6 @@ export function PrintVoucher({ type, data, signatures = [] }: PrintVoucherProps)
         <p style={labelStyle}>Chứng từ kèm theo: ................ là chứng từ gốc</p>
       </div>
 
-      {/* Digital Signature Status */}
-      {signatures.length > 0 && (
-        <div style={{ margin: '16px 0 8px', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 6px', fontSize: '13px' }}>🔏 Trạng thái chữ ký số:</p>
-          {signatures.map((sig, idx) => (
-            <p key={idx} style={{ margin: '3px 0', paddingLeft: '8px' }}>
-              ✅ <strong>{sig.signer_name}</strong>
-              {' - '}
-              {sig.role === 'lanh_dao' ? 'Lãnh đạo' : sig.role === 'ke_toan_truong' ? 'Phụ trách kế toán' : sig.role}
-              {' - '}
-              <span style={{ fontStyle: 'italic', color: '#555' }}>
-                {new Date(sig.signed_at).toLocaleString('vi-VN')}
-              </span>
-            </p>
-          ))}
-        </div>
-      )}
-
       {/* Signatures - Top */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '33%' }}>
@@ -107,18 +89,33 @@ export function PrintVoucher({ type, data, signatures = [] }: PrintVoucherProps)
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.leaderName}</p>
+          {signatures.filter(s => s.role === 'lanh_dao').map((sig, idx) => (
+            <p key={idx} style={{ fontSize: '10px', color: '#0a7', margin: '4px 0 0' }}>
+              ✅ Đã ký số: {new Date(sig.signed_at).toLocaleString('vi-VN')}
+            </p>
+          ))}
         </div>
         <div style={{ width: '33%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>PHỤ TRÁCH KẾ TOÁN</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
+          {signatures.filter(s => s.role === 'ke_toan_truong').map((sig, idx) => (
+            <p key={idx} style={{ fontSize: '10px', color: '#0a7', margin: '4px 0 0' }}>
+              ✅ Đã ký số: {new Date(sig.signed_at).toLocaleString('vi-VN')}
+            </p>
+          ))}
         </div>
         <div style={{ width: '33%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>NGƯỜI LẬP</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.creatorName}</p>
+          {signatures.filter(s => s.role !== 'lanh_dao' && s.role !== 'ke_toan_truong').map((sig, idx) => (
+            <p key={idx} style={{ fontSize: '10px', color: '#0a7', margin: '4px 0 0' }}>
+              ✅ Đã ký số: {new Date(sig.signed_at).toLocaleString('vi-VN')}
+            </p>
+          ))}
         </div>
       </div>
 
