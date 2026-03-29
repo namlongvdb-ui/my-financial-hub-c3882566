@@ -77,12 +77,20 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const totalAmount = useMemo(() => filtered.reduce((s, t) => s + t.amount, 0), [filtered]);
 
   const handleDelete = (tx: Transaction) => {
+    if (isApproved(tx.voucherNo)) {
+      toast.error('Chứng từ đã được duyệt, không thể xóa');
+      return;
+    }
     deleteTransaction(tx.id);
     toast.success(`Đã xóa ${tx.voucherNo}`);
     onChanged?.();
   };
 
   const handleEdit = (tx: Transaction) => {
+    if (isApproved(tx.voucherNo)) {
+      toast.error('Chứng từ đã được duyệt, không thể sửa');
+      return;
+    }
     onSelectForEdit?.(tx);
   };
 
