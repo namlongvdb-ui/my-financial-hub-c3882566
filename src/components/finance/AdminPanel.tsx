@@ -422,8 +422,7 @@ export function AdminPanel() {
                 <SelectContent>
                   <SelectItem value="admin">Quản trị viên</SelectItem>
                   <SelectItem value="lanh_dao">Lãnh đạo</SelectItem>
-                  <SelectItem value="ke_toan_truong">Kế toán trưởng</SelectItem>
-                  <SelectItem value="ke_toan">Kế toán</SelectItem>
+                  <SelectItem value="nguoi_lap">Người lập</SelectItem>
                 </SelectContent>
               </Select>
             </div>

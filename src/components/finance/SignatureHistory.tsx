@@ -23,9 +23,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 const ROLE_LABELS: Record<string, string> = {
   lanh_dao: 'Lãnh đạo',
-  ke_toan_truong: 'Kế toán trưởng',
+  nguoi_lap: 'Người lập',
   admin: 'Quản trị viên',
-  ke_toan: 'Kế toán',
 };
 
 export function SignatureHistory() {
