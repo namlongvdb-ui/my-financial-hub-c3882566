@@ -81,25 +81,11 @@ export function PrintPaymentRequest({ data }: PrintPaymentRequestProps) {
 
       {/* 5. Thông tin chuyển khoản - Căn lề chuẩn theo tt.bmp */}
       {(data.bankAccount || data.bankAccountName || data.bankName) && (
-        <div style={{ marginTop: '15px', display: 'flex' }}>
-          <div style={{
-            marginLeft: 'auto', 
-            marginRight: '5%',
-            display: 'grid',
-            gridTemplateColumns: 'auto auto',
-            columnGap: '8px',
-            rowGap: '2px',
-            fontStyle: 'italic',
-            fontSize: '14px',
-            lineHeight: '1.5'
-          }}>
-            <div style={{ whiteSpace: 'nowrap' }}>Thông tin Chuyển khoản:</div>
-            <div style={{ whiteSpace: 'nowrap' }}>Số TK: {data.bankAccount || '...............'}</div>
-            <div></div>
-            <div style={{ whiteSpace: 'nowrap' }}>Tên TK: {data.bankAccountName || '...............'}</div>
-            <div></div>
-            <div style={{ whiteSpace: 'nowrap' }}>Tại NH: {data.bankName || '...............'}</div>
-          </div>
+        <div style={{ marginTop: '15px', fontStyle: 'italic', fontSize: '14px', lineHeight: '1.8' }}>
+          <p style={{ margin: '4px 0' }}>Thông tin Chuyển khoản:</p>
+          <p style={{ margin: '4px 0', paddingLeft: '20px' }}>Số TK: {data.bankAccount || '...............'}</p>
+          <p style={{ margin: '4px 0', paddingLeft: '20px' }}>Tên TK: {data.bankAccountName || '...............'}</p>
+          <p style={{ margin: '4px 0', paddingLeft: '20px' }}>Tại NH: {data.bankName || '...............'}</p>
         </div>
       )}
 
