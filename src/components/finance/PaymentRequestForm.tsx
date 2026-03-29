@@ -35,6 +35,7 @@ const emptyForm = (settings: ReturnType<typeof getOrgSettings>) => ({
 });
 
 export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormProps) {
+  const { user, profile } = useAuth();
   const settings = getOrgSettings();
   const [form, setForm] = useState(() => emptyForm(settings));
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
