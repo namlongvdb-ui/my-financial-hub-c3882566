@@ -181,16 +181,21 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((tx, idx) => (
+                    {filtered.map((tx, idx) => {
+                      const locked = isApproved(tx.voucherNo);
+                      return (
                       <TableRow
                         key={tx.id}
-                        className="group cursor-pointer transition-colors hover:bg-primary/[0.03] border-b border-border/50 last:border-b-0"
-                        onClick={() => handleEdit(tx)}
+                        className={`group transition-colors border-b border-border/50 last:border-b-0 ${locked ? 'cursor-default bg-muted/10' : 'cursor-pointer hover:bg-primary/[0.03]'}`}
+                        onClick={() => !locked && handleEdit(tx)}
                       >
                         <TableCell className="pl-6">
-                          <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
-                            {tx.voucherNo}
-                          </Badge>
+                          <div className="flex items-center gap-1.5">
+                            {locked && <Lock className="h-3 w-3 text-green-600 flex-shrink-0" />}
+                            <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
+                              {tx.voucherNo}
+                            </Badge>
+                          </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground tabular-nums">
                           {formatDate(tx.date)}
@@ -221,6 +226,16 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                           </TableCell>
                         )}
                         <TableCell>
+                          {locked ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="text-xs text-green-600 border-green-300 bg-green-50 dark:bg-green-950/30">
+                                  Đã duyệt
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
+                            </Tooltip>
+                          ) : (
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="ghost"
@@ -253,6 +268,15 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                                   <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                                     Xóa
                                   </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      );
+                    })}
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
