@@ -1,15 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getTransactions, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List } from 'lucide-react';
+import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoucherSignatureStatus, SignVoucherButton } from './VoucherSignature';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TransactionListProps {
   type: 'thu' | 'chi' | 'tham-hoi' | 'de-nghi';
@@ -33,8 +35,28 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [sigRefreshKey, setSigRefreshKey] = useState(0);
+  const [approvedVoucherIds, setApprovedVoucherIds] = useState<Set<string>>(new Set());
 
   const isVoucher = type === 'thu' || type === 'chi';
+
+  // Fetch approved/signed voucher IDs to prevent editing
+  const fetchApprovedIds = useCallback(async () => {
+    const { data } = await supabase
+      .from('pending_vouchers')
+      .select('voucher_id')
+      .eq('voucher_type', type)
+      .in('status', ['signed', 'printed']);
+    
+    if (data) {
+      setApprovedVoucherIds(new Set(data.map(v => v.voucher_id)));
+    }
+  }, [type]);
+
+  useEffect(() => {
+    fetchApprovedIds();
+  }, [fetchApprovedIds, refreshKey, sigRefreshKey]);
+
+  const isApproved = (voucherNo: string) => approvedVoucherIds.has(voucherNo);
 
   const transactions = useMemo(() => {
     return getTransactions().filter(t => t.type === type);
@@ -55,12 +77,20 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const totalAmount = useMemo(() => filtered.reduce((s, t) => s + t.amount, 0), [filtered]);
 
   const handleDelete = (tx: Transaction) => {
+    if (isApproved(tx.voucherNo)) {
+      toast.error('Chứng từ đã được duyệt, không thể xóa');
+      return;
+    }
     deleteTransaction(tx.id);
     toast.success(`Đã xóa ${tx.voucherNo}`);
     onChanged?.();
   };
 
   const handleEdit = (tx: Transaction) => {
+    if (isApproved(tx.voucherNo)) {
+      toast.error('Chứng từ đã được duyệt, không thể sửa');
+      return;
+    }
     onSelectForEdit?.(tx);
   };
 
@@ -147,89 +177,106 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                       <TableHead className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider pr-4">Số tiền</TableHead>
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chữ ký</TableHead>}
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ký duyệt</TableHead>}
-                      <TableHead className="w-[80px]"></TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((tx, idx) => (
-                      <TableRow
-                        key={tx.id}
-                        className="group cursor-pointer transition-colors hover:bg-primary/[0.03] border-b border-border/50 last:border-b-0"
-                        onClick={() => handleEdit(tx)}
-                      >
-                        <TableCell className="pl-6">
-                          <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
-                            {tx.voucherNo}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground tabular-nums">
-                          {formatDate(tx.date)}
-                        </TableCell>
-                        <TableCell className="max-w-[280px]">
-                          <p className="text-sm text-foreground truncate leading-tight">{tx.description}</p>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-foreground/80">{tx.personName}</span>
-                        </TableCell>
-                        <TableCell className="text-right pr-4">
-                          <span className="text-sm font-semibold tabular-nums text-foreground">
-                            {formatCurrency(tx.amount)} ₫
-                          </span>
-                        </TableCell>
-                        {isVoucher && (
-                          <TableCell onClick={e => e.stopPropagation()}>
-                            <VoucherSignatureStatus transaction={tx} voucherType={type as 'thu' | 'chi'} key={`sig-${tx.id}-${sigRefreshKey}`} />
+                    {filtered.map((tx) => {
+                      const locked = isApproved(tx.voucherNo);
+                      return (
+                        <TableRow
+                          key={tx.id}
+                          className={`group transition-colors border-b border-border/50 last:border-b-0 ${locked ? 'cursor-default' : 'cursor-pointer hover:bg-primary/[0.03]'}`}
+                          onClick={() => !locked && handleEdit(tx)}
+                        >
+                          <TableCell className="pl-6">
+                            <div className="flex items-center gap-1.5">
+                              {locked && <Lock className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0" />}
+                              <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
+                                {tx.voucherNo}
+                              </Badge>
+                            </div>
                           </TableCell>
-                        )}
-                        {isVoucher && (
-                          <TableCell onClick={e => e.stopPropagation()}>
-                            <SignVoucherButton
-                              transaction={tx}
-                              voucherType={type as 'thu' | 'chi'}
-                              onSigned={() => setSigRefreshKey(k => k + 1)}
-                            />
+                          <TableCell className="text-sm text-muted-foreground tabular-nums">
+                            {formatDate(tx.date)}
                           </TableCell>
-                        )}
-                        <TableCell>
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                              onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                          <TableCell className="max-w-[280px]">
+                            <p className="text-sm text-foreground truncate leading-tight">{tx.description}</p>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-foreground/80">{tx.personName}</span>
+                          </TableCell>
+                          <TableCell className="text-right pr-4">
+                            <span className="text-sm font-semibold tabular-nums text-foreground">
+                              {formatCurrency(tx.amount)} ₫
+                            </span>
+                          </TableCell>
+                          {isVoucher && (
+                            <TableCell onClick={e => e.stopPropagation()}>
+                              <VoucherSignatureStatus transaction={tx} voucherType={type as 'thu' | 'chi'} key={`sig-${tx.id}-${sigRefreshKey}`} />
+                            </TableCell>
+                          )}
+                          {isVoucher && (
+                            <TableCell onClick={e => e.stopPropagation()}>
+                              <SignVoucherButton
+                                transaction={tx}
+                                voucherType={type as 'thu' | 'chi'}
+                                onSigned={() => setSigRefreshKey(k => k + 1)}
+                              />
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            {locked ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">
+                                    Đã duyệt
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                  onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <Pencil className="h-3.5 w-3.5" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Xóa
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Xóa
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
