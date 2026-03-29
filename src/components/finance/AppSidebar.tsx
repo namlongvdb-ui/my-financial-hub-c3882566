@@ -23,6 +23,8 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType; admin
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
   { view: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: KeyRound },
   { view: 'lich-su-ky', label: 'Lịch sử ký duyệt', icon: History },
+  { view: 'cho-ky', label: 'Chứng từ chờ ký', icon: PenTool },
+  { view: 'da-duyet', label: 'Chứng từ đã duyệt', icon: FileCheck },
   { view: 'quan-tri', label: 'Quản trị hệ thống', icon: Shield, adminOnly: true },
 ];
 
