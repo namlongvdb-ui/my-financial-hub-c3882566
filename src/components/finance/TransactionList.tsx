@@ -177,110 +177,109 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                       <TableHead className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider pr-4">Số tiền</TableHead>
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chữ ký</TableHead>}
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ký duyệt</TableHead>}
-                      <TableHead className="w-[80px]"></TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((tx, idx) => {
+                    {filtered.map((tx) => {
                       const locked = isApproved(tx.voucherNo);
                       return (
-                      <TableRow
-                        key={tx.id}
-                        className={`group transition-colors border-b border-border/50 last:border-b-0 ${locked ? 'cursor-default bg-muted/10' : 'cursor-pointer hover:bg-primary/[0.03]'}`}
-                        onClick={() => !locked && handleEdit(tx)}
-                      >
-                        <TableCell className="pl-6">
-                          <div className="flex items-center gap-1.5">
-                            {locked && <Lock className="h-3 w-3 text-green-600 flex-shrink-0" />}
-                            <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
-                              {tx.voucherNo}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground tabular-nums">
-                          {formatDate(tx.date)}
-                        </TableCell>
-                        <TableCell className="max-w-[280px]">
-                          <p className="text-sm text-foreground truncate leading-tight">{tx.description}</p>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-foreground/80">{tx.personName}</span>
-                        </TableCell>
-                        <TableCell className="text-right pr-4">
-                          <span className="text-sm font-semibold tabular-nums text-foreground">
-                            {formatCurrency(tx.amount)} ₫
-                          </span>
-                        </TableCell>
-                        {isVoucher && (
-                          <TableCell onClick={e => e.stopPropagation()}>
-                            <VoucherSignatureStatus transaction={tx} voucherType={type as 'thu' | 'chi'} key={`sig-${tx.id}-${sigRefreshKey}`} />
+                        <TableRow
+                          key={tx.id}
+                          className={`group transition-colors border-b border-border/50 last:border-b-0 ${locked ? 'cursor-default' : 'cursor-pointer hover:bg-primary/[0.03]'}`}
+                          onClick={() => !locked && handleEdit(tx)}
+                        >
+                          <TableCell className="pl-6">
+                            <div className="flex items-center gap-1.5">
+                              {locked && <Lock className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0" />}
+                              <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
+                                {tx.voucherNo}
+                              </Badge>
+                            </div>
                           </TableCell>
-                        )}
-                        {isVoucher && (
-                          <TableCell onClick={e => e.stopPropagation()}>
-                            <SignVoucherButton
-                              transaction={tx}
-                              voucherType={type as 'thu' | 'chi'}
-                              onSigned={() => setSigRefreshKey(k => k + 1)}
-                            />
+                          <TableCell className="text-sm text-muted-foreground tabular-nums">
+                            {formatDate(tx.date)}
                           </TableCell>
-                        )}
-                        <TableCell>
-                          {locked ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge variant="outline" className="text-xs text-green-600 border-green-300 bg-green-50 dark:bg-green-950/30">
-                                  Đã duyệt
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
-                            </Tooltip>
-                          ) : (
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                              onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                          <TableCell className="max-w-[280px]">
+                            <p className="text-sm text-foreground truncate leading-tight">{tx.description}</p>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-foreground/80">{tx.personName}</span>
+                          </TableCell>
+                          <TableCell className="text-right pr-4">
+                            <span className="text-sm font-semibold tabular-nums text-foreground">
+                              {formatCurrency(tx.amount)} ₫
+                            </span>
+                          </TableCell>
+                          {isVoucher && (
+                            <TableCell onClick={e => e.stopPropagation()}>
+                              <VoucherSignatureStatus transaction={tx} voucherType={type as 'thu' | 'chi'} key={`sig-${tx.id}-${sigRefreshKey}`} />
+                            </TableCell>
+                          )}
+                          {isVoucher && (
+                            <TableCell onClick={e => e.stopPropagation()}>
+                              <SignVoucherButton
+                                transaction={tx}
+                                voucherType={type as 'thu' | 'chi'}
+                                onSigned={() => setSigRefreshKey(k => k + 1)}
+                              />
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            {locked ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">
+                                    Đã duyệt
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                  onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <Pencil className="h-3.5 w-3.5" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Xóa
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Xóa
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
-
-
+              </div>
 
               {/* Footer summary */}
               <div className="flex items-center justify-between px-6 py-3 bg-muted/20 border-t border-border">
