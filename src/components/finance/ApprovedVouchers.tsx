@@ -34,7 +34,6 @@ export function ApprovedVouchers() {
     const { data } = await supabase
       .from('pending_vouchers')
       .select('*')
-      .eq('created_by', user.id)
       .in('status', ['signed', 'printed'])
       .order('signed_at', { ascending: false });
 
