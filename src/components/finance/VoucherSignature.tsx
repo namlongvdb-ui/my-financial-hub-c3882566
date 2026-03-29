@@ -95,7 +95,7 @@ export function VoucherSignatureStatus({ transaction, voucherType }: VoucherSign
           key={sig.signer_id}
           variant="outline"
           className="text-xs bg-green-50 text-green-700 border-green-200"
-          title={`${sig.signer_name} - ${sig.role === 'lanh_dao' ? 'Lãnh đạo' : sig.role === 'ke_toan_truong' ? 'KTT' : sig.role}`}
+          title={`${sig.signer_name} - ${sig.role === 'lanh_dao' ? 'Lãnh đạo' : sig.role === 'nguoi_lap' ? 'Người lập' : sig.role}`}
         >
           <ShieldCheck className="w-3 h-3 mr-1" />
           {sig.signer_name}
