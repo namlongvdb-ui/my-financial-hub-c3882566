@@ -322,6 +322,16 @@ export function AdminPanel() {
                           Reset MK
                         </Button>
                         {u.username !== 'admin' && (
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setRoleTarget({ user_id: u.user_id, full_name: u.full_name, currentRole: u.roles[0] || 'ke_toan' });
+                            setSelectedRole(u.roles[0] || 'ke_toan');
+                            setRoleDialogOpen(true);
+                          }}>
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                            Đổi vai trò
+                          </Button>
+                        )}
+                        {u.username !== 'admin' && (
                           <>
                             <Button
                               size="sm"
