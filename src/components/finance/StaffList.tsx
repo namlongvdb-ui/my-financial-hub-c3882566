@@ -21,9 +21,10 @@ import {
 } from '@/lib/staff-store';
 import { getOrgSettings } from '@/lib/finance-store';
 import { TransferRecord } from '@/types/finance';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
+import { exportStaffListExcel } from '@/lib/export-utils';
 
 const POSITION_OPTIONS = [
   'Giám đốc', 'Phó Giám đốc', 'Trưởng phòng', 'Phó Trưởng phòng',
@@ -290,6 +291,9 @@ export function StaffList() {
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={openHistory}>
             <History className="h-4 w-4 mr-1" /> Lịch sử điều chuyển
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => { exportStaffListExcel(); toast.success('Đã xuất file Excel'); }}>
+            <FileSpreadsheet className="h-4 w-4 mr-1" /> Xuất Excel
           </Button>
           <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>
             <Printer className="h-4 w-4 mr-1" /> In danh sách

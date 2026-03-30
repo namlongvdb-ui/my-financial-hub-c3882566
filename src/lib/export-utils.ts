@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
+import { getStaffList, getStaffSettings, calculateInsuranceSalary, calculateUnionFee } from '@/lib/staff-store';
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('vi-VN');
@@ -141,4 +142,88 @@ export function exportFullReportExcel() {
   XLSX.utils.book_append_sheet(wb, ws3, 'Chi Tiết');
 
   XLSX.writeFile(wb, `BaoCaoTaiChinh_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+export function exportStaffListExcel() {
+  const settings = getOrgSettings();
+  const staffSettings = getStaffSettings();
+  const list = getStaffList();
+  const wb = XLSX.utils.book_new();
+
+  const fmt = (n: number) => Math.round(n);
+
+  // Group by department
+  const grouped: Record<string, typeof list> = {};
+  for (const s of list) {
+    const dept = s.department || 'Chưa phân tổ';
+    if (!grouped[dept]) grouped[dept] = [];
+    grouped[dept].push(s);
+  }
+
+  // Sheet for each union group
+  for (const [dept, members] of Object.entries(grouped)) {
+    const rows: (string | number)[][] = [
+      [settings.orgName + ' - ' + settings.orgSubName],
+      [`DANH SÁCH ĐOÀN VIÊN - ${dept.toUpperCase()}`],
+      [`Lương cơ sở: ${staffSettings.baseSalary.toLocaleString('vi-VN')} đ`],
+      [],
+      ['STT', 'Họ và tên', 'Chức vụ', 'Ngày sinh', 'GT', 'HS lương', 'HS CV', 'Lương vùng', 'Lương BH', 'Đoàn phí CĐ'],
+    ];
+
+    let totalFee = 0;
+    members.forEach((s, i) => {
+      const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, staffSettings.baseSalary);
+      const fee = calculateUnionFee(lbh, staffSettings.baseSalary);
+      totalFee += fee;
+      rows.push([
+        i + 1,
+        s.fullName,
+        s.position,
+        s.birthDate ? new Date(s.birthDate).toLocaleDateString('vi-VN') : '',
+        s.gender === 'nam' ? 'Nam' : 'Nữ',
+        s.salaryCoefficient,
+        s.positionCoefficient,
+        fmt(s.regionalSalary),
+        fmt(lbh),
+        fmt(fee),
+      ]);
+    });
+
+    rows.push([]);
+    rows.push(['', '', '', '', '', '', '', 'Tổng cộng:', '', fmt(totalFee)]);
+
+    // Truncate sheet name to 31 chars (Excel limit)
+    const sheetName = dept.length > 31 ? dept.substring(0, 28) + '...' : dept;
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+      { wch: 5 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 5 },
+      { wch: 10 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+
+  // Summary sheet
+  const summaryRows: (string | number)[][] = [
+    [settings.orgName + ' - ' + settings.orgSubName],
+    ['TỔNG HỢP DANH SÁCH ĐOÀN VIÊN'],
+    [],
+    ['Tổ công đoàn', 'Số đoàn viên', 'Tổng đoàn phí CĐ/tháng'],
+  ];
+  let grandTotal = 0;
+  for (const [dept, members] of Object.entries(grouped)) {
+    const deptFee = members.reduce((sum, s) => {
+      const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, staffSettings.baseSalary);
+      return sum + calculateUnionFee(lbh, staffSettings.baseSalary);
+    }, 0);
+    grandTotal += deptFee;
+    summaryRows.push([dept, members.length, fmt(deptFee)]);
+  }
+  summaryRows.push([]);
+  summaryRows.push(['Tổng cộng', list.length, fmt(grandTotal)]);
+
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+  wsSummary['!cols'] = [{ wch: 45 }, { wch: 16 }, { wch: 22 }];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Tổng hợp');
+
+  XLSX.writeFile(wb, `DanhSachDoanVien_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
