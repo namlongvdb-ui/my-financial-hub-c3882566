@@ -342,7 +342,7 @@ export function StaffList() {
       <Card className="bg-muted/30 no-print">
         <CardContent className="p-4 text-xs text-muted-foreground space-y-1">
           <p><strong>Công thức tính:</strong></p>
-          <p>• Lương BH = (Hệ số lương × Lương vùng) + (Hệ số chức vụ × Lương tối thiểu)</p>
+          <p>• Lương BH = (Hệ số lương × Lương vùng) + (Hệ số chức vụ × Lương cơ sở)</p>
           <p>• Đoàn phí CĐ = Lương BH × 0,5% (nhưng không quá 10% × Lương cơ sở)</p>
           <p>• Trần đoàn phí hiện tại: {fmt(Math.round(settings.baseSalary * 0.1))} ₫/tháng</p>
         </CardContent>
