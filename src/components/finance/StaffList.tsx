@@ -47,10 +47,10 @@ export function StaffList() {
     if (!form.fullName.trim()) { toast.error('Vui lòng nhập họ tên'); return; }
     if (editingId) {
       updateStaff(editingId, form);
-      toast.success('Đã cập nhật cán bộ');
+      toast.success('Đã cập nhật đoàn viên');
     } else {
       addStaff(form);
-      toast.success('Đã thêm cán bộ');
+      toast.success('Đã thêm đoàn viên');
     }
     setForm(emptyStaff);
     setEditingId(null);
@@ -66,7 +66,7 @@ export function StaffList() {
 
   const handleDelete = (id: string) => {
     deleteStaff(id);
-    toast.success('Đã xóa cán bộ');
+    toast.success('Đã xóa đoàn viên');
     reload();
   };
 
@@ -84,7 +84,7 @@ export function StaffList() {
       return;
     }
 
-    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách cán bộ';
+    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách đoàn viên';
 
     printWindow.document.open();
     printWindow.document.write(`
@@ -164,7 +164,7 @@ export function StaffList() {
       {/* Header */}
       <div className="flex items-center justify-between no-print">
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-          <Users className="h-6 w-6" /> Danh sách cán bộ
+          <Users className="h-6 w-6" /> Danh sách đoàn viên
         </h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>
@@ -231,10 +231,10 @@ export function StaffList() {
           {/* Add staff dialog */}
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setForm(emptyStaff); setEditingId(null); } }}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Thêm cán bộ</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Thêm đoàn viên</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>{editingId ? 'Sửa thông tin cán bộ' : 'Thêm cán bộ mới'}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingId ? 'Sửa thông tin đoàn viên' : 'Thêm đoàn viên mới'}</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-3 py-2">
                 <div className="col-span-2">
                   <Label className="text-xs text-muted-foreground">Họ và tên</Label>
@@ -279,7 +279,7 @@ export function StaffList() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng cán bộ</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn viên</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương tối thiểu</p><p className="text-lg font-semibold text-foreground">{fmt(settings.minimumSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương vùng</p><p className="text-lg font-semibold text-foreground">{fmt(settings.regionalSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="text-lg font-bold text-primary">{fmt(Math.round(totalUnionFee))} ₫</p></CardContent></Card>
@@ -307,7 +307,7 @@ export function StaffList() {
               </TableHeader>
               <TableBody>
                 {list.length === 0 && (
-                  <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Chưa có cán bộ nào. Nhấn "Thêm cán bộ" để bắt đầu.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
                 )}
                 {list.map((s, i) => {
                   const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
