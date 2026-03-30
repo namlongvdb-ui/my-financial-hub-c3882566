@@ -324,6 +324,7 @@ export function StaffList() {
                       <TableCell className="text-center text-sm">{s.gender === 'nam' ? 'Nam' : 'Nữ'}</TableCell>
                       <TableCell className="text-right font-mono">{s.salaryCoefficient.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-mono">{s.positionCoefficient.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-mono">{fmt(s.regionalSalary)}</TableCell>
                       <TableCell className="text-right font-semibold">{fmt(Math.round(lbh))}</TableCell>
                       <TableCell className="text-right font-semibold text-primary">{fmt(Math.round(fee))}</TableCell>
                       <TableCell>
