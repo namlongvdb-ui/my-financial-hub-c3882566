@@ -108,7 +108,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
             </Button>
           )}
         </div>
-        <ScrollArea className="max-h-80">
+        <ScrollArea className="h-[400px]">
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">Chưa có thông báo</div>
           ) : (

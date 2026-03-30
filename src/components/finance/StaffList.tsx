@@ -5,9 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { StaffMember, StaffSettings } from '@/types/finance';
 import {
@@ -15,7 +17,8 @@ import {
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
 } from '@/lib/staff-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check } from 'lucide-react';
+import { getOrgSettings } from '@/lib/finance-store';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
@@ -80,7 +83,15 @@ export function StaffList() {
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth() + 1);
   const [feeYear, setFeeYear] = useState(new Date().getFullYear());
   const [feeDialogOpen, setFeeDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<StaffMember | null>(null);
+  const [transferDept, setTransferDept] = useState('');
+  const [transferType, setTransferType] = useState<'move' | 'out'>('move');
+  const [activeTab, setActiveTab] = useState('all');
   const printRef = useRef<HTMLDivElement>(null);
+
+  const orgSettings = getOrgSettings();
+  const unionGroupNames = orgSettings.unionGroups.map(g => g.name);
 
   useEffect(() => { setList(getStaffList()); }, []);
   const reload = () => setList(getStaffList());
@@ -93,6 +104,7 @@ export function StaffList() {
 
   const handleSubmit = () => {
     if (!form.fullName.trim()) { toast.error('Vui lòng nhập họ tên'); return; }
+    if (!form.department.trim()) { toast.error('Vui lòng chọn tổ công đoàn'); return; }
     if (editingId) {
       updateStaff(editingId, form);
       toast.success('Đã cập nhật đoàn viên');
@@ -117,6 +129,47 @@ export function StaffList() {
     toast.success('Đã xóa đoàn viên');
     reload();
   };
+
+  const handleOpenTransfer = (s: StaffMember, type: 'move' | 'out') => {
+    setTransferTarget(s);
+    setTransferType(type);
+    setTransferDept(type === 'out' ? 'Đã chuyển khỏi ngành' : '');
+    setTransferDialogOpen(true);
+  };
+
+  const handleTransfer = () => {
+    if (!transferTarget) return;
+    if (transferType === 'move' && !transferDept) {
+      toast.error('Vui lòng chọn tổ công đoàn đích');
+      return;
+    }
+    if (transferType === 'out') {
+      deleteStaff(transferTarget.id);
+      toast.success(`Đã chuyển ${transferTarget.fullName} ra khỏi ngành`);
+    } else {
+      updateStaff(transferTarget.id, { department: transferDept });
+      toast.success(`Đã chuyển ${transferTarget.fullName} sang ${transferDept}`);
+    }
+    setTransferDialogOpen(false);
+    setTransferTarget(null);
+    reload();
+  };
+
+  // Group by department
+  const groupedByDept = useMemo(() => {
+    const map: Record<string, StaffMember[]> = {};
+    for (const s of list) {
+      const dept = s.department || 'Chưa phân tổ';
+      if (!map[dept]) map[dept] = [];
+      map[dept].push(s);
+    }
+    return map;
+  }, [list]);
+
+  const filteredList = useMemo(() => {
+    if (activeTab === 'all') return list;
+    return list.filter(s => s.department === activeTab);
+  }, [list, activeTab]);
 
   const openLandscapePrintWindow = (mode: 'staff' | 'fee') => {
     const printMarkup = printRef.current?.innerHTML;
@@ -287,8 +340,15 @@ export function StaffList() {
                   <Input value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} placeholder="Nguyễn Văn A" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Đơn vị công tác</Label>
-                  <Input value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))} placeholder="Phòng Kế toán" />
+                  <Label className="text-xs text-muted-foreground">Tổ công đoàn</Label>
+                  <Select value={form.department} onValueChange={v => setForm(p => ({ ...p, department: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Chọn tổ công đoàn..." /></SelectTrigger>
+                    <SelectContent>
+                      {unionGroupNames.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Chức vụ</Label>
@@ -334,6 +394,28 @@ export function StaffList() {
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="text-lg font-bold text-primary">{fmt(Math.round(totalUnionFee))} ₫</p></CardContent></Card>
       </div>
 
+      {/* Filter tabs by union group */}
+      <div className="no-print">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="flex flex-wrap h-auto gap-1">
+            <TabsTrigger value="all" className="text-xs">
+              Tất cả <Badge variant="secondary" className="ml-1 text-[10px]">{list.length}</Badge>
+            </TabsTrigger>
+            {unionGroupNames.map(name => (
+              <TabsTrigger key={name} value={name} className="text-xs">
+                {name.length > 30 ? name.substring(0, 30) + '...' : name}
+                <Badge variant="secondary" className="ml-1 text-[10px]">{groupedByDept[name]?.length || 0}</Badge>
+              </TabsTrigger>
+            ))}
+            {Object.keys(groupedByDept).filter(d => !unionGroupNames.includes(d)).map(d => (
+              <TabsTrigger key={d} value={d} className="text-xs">
+                {d} <Badge variant="secondary" className="ml-1 text-[10px]">{groupedByDept[d]?.length || 0}</Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* Table */}
       <Card className="no-print">
         <CardContent className="p-0">
@@ -343,7 +425,7 @@ export function StaffList() {
                 <TableRow className="bg-muted/50">
                   <TableHead className="w-10 text-center">STT</TableHead>
                   <TableHead>Họ và tên</TableHead>
-                  <TableHead>Đơn vị</TableHead>
+                  <TableHead>Tổ công đoàn</TableHead>
                   <TableHead>Chức vụ</TableHead>
                   <TableHead className="text-center">Ngày sinh</TableHead>
                   <TableHead className="text-center">GT</TableHead>
@@ -352,14 +434,14 @@ export function StaffList() {
                   <TableHead className="text-right">Lương vùng</TableHead>
                   <TableHead className="text-right">Lương BH</TableHead>
                   <TableHead className="text-right">Đoàn phí CĐ</TableHead>
-                  <TableHead className="w-20"></TableHead>
+                  <TableHead className="w-28"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {list.length === 0 && (
+                {filteredList.length === 0 && (
                   <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
                 )}
-                {list.map((s, i) => {
+                {filteredList.map((s, i) => {
                   const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
                   const fee = calculateUnionFee(lbh, settings.baseSalary);
                   return (
@@ -377,8 +459,9 @@ export function StaffList() {
                       <TableCell className="text-right font-semibold text-primary">{fmt(Math.round(fee))}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(s)}><Pencil className="h-3.5 w-3.5" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(s)} title="Sửa"><Pencil className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenTransfer(s, 'move')} title="Điều chuyển"><ArrowRightLeft className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleOpenTransfer(s, 'out')} title="Chuyển khỏi ngành"><LogOut className="h-3.5 w-3.5" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -389,6 +472,45 @@ export function StaffList() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Transfer dialog */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{transferType === 'out' ? 'Chuyển ra khỏi ngành' : 'Điều chuyển đoàn viên'}</DialogTitle>
+            <DialogDescription>
+              {transferTarget && (
+                <span>Đoàn viên: <strong>{transferTarget.fullName}</strong> — Tổ hiện tại: <strong>{transferTarget.department}</strong></span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {transferType === 'move' ? (
+            <div className="space-y-3 py-2">
+              <Label className="text-xs text-muted-foreground">Chuyển đến tổ công đoàn</Label>
+              <Select value={transferDept} onValueChange={setTransferDept}>
+                <SelectTrigger><SelectValue placeholder="Chọn tổ công đoàn đích..." /></SelectTrigger>
+                <SelectContent>
+                  {unionGroupNames.filter(n => n !== transferTarget?.department).map(name => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="py-2">
+              <p className="text-sm text-muted-foreground">
+                Xác nhận chuyển <strong>{transferTarget?.fullName}</strong> ra khỏi ngành? Đoàn viên sẽ bị xóa khỏi danh sách.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferDialogOpen(false)}>Hủy</Button>
+            <Button onClick={handleTransfer} variant={transferType === 'out' ? 'destructive' : 'default'}>
+              {transferType === 'out' ? 'Xác nhận chuyển' : 'Điều chuyển'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Formula note */}
       <Card className="bg-muted/30 no-print">
