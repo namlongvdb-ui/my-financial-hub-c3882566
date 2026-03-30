@@ -4,7 +4,6 @@ const STAFF_KEY = 'union-finance-staff';
 const STAFF_SETTINGS_KEY = 'union-finance-staff-settings';
 
 const defaultStaffSettings: StaffSettings = {
-  minimumSalary: 2340000,
   regionalSalary: 2340000,
   baseSalary: 2340000,
 };
