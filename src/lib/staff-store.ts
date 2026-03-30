@@ -1,7 +1,8 @@
-import { StaffMember, StaffSettings } from '@/types/finance';
+import { StaffMember, StaffSettings, TransferRecord } from '@/types/finance';
 
 const STAFF_KEY = 'union-finance-staff';
 const STAFF_SETTINGS_KEY = 'union-finance-staff-settings';
+const TRANSFER_HISTORY_KEY = 'union-finance-transfer-history';
 
 const defaultStaffSettings: StaffSettings = {
   baseSalary: 2340000,
