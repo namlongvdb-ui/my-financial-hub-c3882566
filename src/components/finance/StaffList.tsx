@@ -83,7 +83,15 @@ export function StaffList() {
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth() + 1);
   const [feeYear, setFeeYear] = useState(new Date().getFullYear());
   const [feeDialogOpen, setFeeDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<StaffMember | null>(null);
+  const [transferDept, setTransferDept] = useState('');
+  const [transferType, setTransferType] = useState<'move' | 'out'>('move');
+  const [activeTab, setActiveTab] = useState('all');
   const printRef = useRef<HTMLDivElement>(null);
+
+  const orgSettings = getOrgSettings();
+  const unionGroupNames = orgSettings.unionGroups.map(g => g.name);
 
   useEffect(() => { setList(getStaffList()); }, []);
   const reload = () => setList(getStaffList());
@@ -96,6 +104,7 @@ export function StaffList() {
 
   const handleSubmit = () => {
     if (!form.fullName.trim()) { toast.error('Vui lòng nhập họ tên'); return; }
+    if (!form.department.trim()) { toast.error('Vui lòng chọn tổ công đoàn'); return; }
     if (editingId) {
       updateStaff(editingId, form);
       toast.success('Đã cập nhật đoàn viên');
@@ -120,6 +129,47 @@ export function StaffList() {
     toast.success('Đã xóa đoàn viên');
     reload();
   };
+
+  const handleOpenTransfer = (s: StaffMember, type: 'move' | 'out') => {
+    setTransferTarget(s);
+    setTransferType(type);
+    setTransferDept(type === 'out' ? 'Đã chuyển khỏi ngành' : '');
+    setTransferDialogOpen(true);
+  };
+
+  const handleTransfer = () => {
+    if (!transferTarget) return;
+    if (transferType === 'move' && !transferDept) {
+      toast.error('Vui lòng chọn tổ công đoàn đích');
+      return;
+    }
+    if (transferType === 'out') {
+      deleteStaff(transferTarget.id);
+      toast.success(`Đã chuyển ${transferTarget.fullName} ra khỏi ngành`);
+    } else {
+      updateStaff(transferTarget.id, { department: transferDept });
+      toast.success(`Đã chuyển ${transferTarget.fullName} sang ${transferDept}`);
+    }
+    setTransferDialogOpen(false);
+    setTransferTarget(null);
+    reload();
+  };
+
+  // Group by department
+  const groupedByDept = useMemo(() => {
+    const map: Record<string, StaffMember[]> = {};
+    for (const s of list) {
+      const dept = s.department || 'Chưa phân tổ';
+      if (!map[dept]) map[dept] = [];
+      map[dept].push(s);
+    }
+    return map;
+  }, [list]);
+
+  const filteredList = useMemo(() => {
+    if (activeTab === 'all') return list;
+    return list.filter(s => s.department === activeTab);
+  }, [list, activeTab]);
 
   const openLandscapePrintWindow = (mode: 'staff' | 'fee') => {
     const printMarkup = printRef.current?.innerHTML;
