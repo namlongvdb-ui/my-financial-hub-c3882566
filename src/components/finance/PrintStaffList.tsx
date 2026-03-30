@@ -76,8 +76,6 @@ export function PrintStaffList() {
       </div>
 
       <div style={{ marginBottom: '8px', fontSize: '11px' }}>
-        <span>Lương vùng: <strong>{fmt(settings.regionalSalary)} đ</strong></span>
-        <span style={{ margin: '0 10px' }}>|</span>
         <span>Lương cơ sở: <strong>{fmt(settings.baseSalary)} đ</strong></span>
       </div>
 
