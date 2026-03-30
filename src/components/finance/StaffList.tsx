@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,20 +6,68 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 import { StaffMember, StaffSettings } from '@/types/finance';
 import {
   getStaffList, addStaff, updateStaff, deleteStaff,
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
 } from '@/lib/staff-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
+
+const POSITION_OPTIONS = [
+  'Giám đốc', 'Phó Giám đốc', 'Trưởng phòng', 'Phó Trưởng phòng',
+  'Chủ tịch', 'Phó Chủ tịch', 'Ủy viên', 'Tổ trưởng', 'Tổ phó',
+  'Chuyên viên chính', 'Chuyên viên', 'Cán sự', 'Nhân viên',
+];
 
 const emptyStaff: Omit<StaffMember, 'id'> = {
   fullName: '', department: '', position: '', birthDate: '', gender: 'nam',
   salaryCoefficient: 0, positionCoefficient: 0, regionalSalary: 2340000,
 };
+
+function PositionCombobox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const filtered = POSITION_OPTIONS.filter(p => p.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between font-normal">
+          {value || 'Chọn chức vụ...'}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Tìm hoặc nhập chức vụ..." value={search} onValueChange={setSearch} />
+          <CommandList>
+            <CommandEmpty>
+              {search.trim() ? (
+                <Button variant="ghost" className="w-full" onClick={() => { onChange(search.trim()); setOpen(false); setSearch(''); }}>
+                  Dùng "{search.trim()}"
+                </Button>
+              ) : 'Không tìm thấy'}
+            </CommandEmpty>
+            <CommandGroup>
+              {filtered.map(p => (
+                <CommandItem key={p} value={p} onSelect={() => { onChange(p); setOpen(false); setSearch(''); }}>
+                  <Check className={cn("mr-2 h-4 w-4", value === p ? "opacity-100" : "opacity-0")} />
+                  {p}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function StaffList() {
   const [list, setList] = useState<StaffMember[]>([]);
@@ -244,7 +292,7 @@ export function StaffList() {
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Chức vụ</Label>
-                  <Input value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="Chuyên viên" />
+                  <PositionCombobox value={form.position} onChange={v => setForm(p => ({ ...p, position: v }))} />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Ngày sinh</Label>
