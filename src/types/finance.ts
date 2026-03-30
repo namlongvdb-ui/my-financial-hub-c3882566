@@ -69,6 +69,7 @@ export interface OrgSettings {
   creatorName: string;
   treasurerName: string;
   unionGroups: { name: string; leaderName: string }[];
+  areaRepresentatives: { areaName: string; officerName: string }[];
   defaultAccountCode: string;
   openingBalance: number;
 }

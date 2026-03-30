@@ -19,6 +19,7 @@ const defaultSettings: OrgSettings = {
       leaderName: 'Trần Nam Long'
     },
   ],
+  areaRepresentatives: [],
   defaultAccountCode: '',
   openingBalance: 0,
 };
