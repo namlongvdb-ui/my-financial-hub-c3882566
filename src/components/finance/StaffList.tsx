@@ -321,6 +321,9 @@ export function StaffList() {
           <Users className="h-6 w-6" /> Danh sách đoàn viên
         </h2>
         <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => setBulkTransferOpen(true)}>
+            <ArrowRightLeft className="h-4 w-4 mr-1" /> Điều chuyển đoàn viên
+          </Button>
           <Button variant="outline" size="sm" onClick={openHistory}>
             <History className="h-4 w-4 mr-1" /> Lịch sử điều chuyển
           </Button>
