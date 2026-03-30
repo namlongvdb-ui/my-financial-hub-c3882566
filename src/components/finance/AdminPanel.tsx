@@ -451,6 +451,36 @@ export function AdminPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={signatureDialogOpen} onOpenChange={setSignatureDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tạo chữ ký số</DialogTitle>
+            <DialogDescription>
+              Tạo cặp khóa RSA cho: <strong>{signatureTarget?.full_name}</strong>. 
+              Nhập mật khẩu ký để mã hóa khóa bí mật trên server. Người dùng sẽ dùng mật khẩu này khi ký trên mọi thiết bị.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Mật khẩu ký số</Label>
+              <Input
+                type="password"
+                value={signaturePassword}
+                onChange={e => setSignaturePassword(e.target.value)}
+                placeholder="Nhập mật khẩu để mã hóa khóa bí mật..."
+                onKeyDown={e => e.key === 'Enter' && handleGenerateSignature()}
+              />
+              <p className="text-xs text-muted-foreground">
+                Mật khẩu này dùng để mã hóa khóa bí mật. Người dùng cần nhập khi ký chứng từ trên bất kỳ thiết bị nào.
+              </p>
+            </div>
+            <Button onClick={handleGenerateSignature} disabled={generatingSignature || !signaturePassword} className="w-full">
+              {generatingSignature ? 'Đang tạo...' : 'Tạo chữ ký số'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
