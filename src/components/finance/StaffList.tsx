@@ -84,7 +84,7 @@ export function StaffList() {
       return;
     }
 
-    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách cán bộ';
+    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách đoàn viên';
 
     printWindow.document.open();
     printWindow.document.write(`
