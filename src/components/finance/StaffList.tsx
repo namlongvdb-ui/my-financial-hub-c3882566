@@ -90,6 +90,8 @@ export function StaffList() {
   const [transferDept, setTransferDept] = useState('');
   const [transferType, setTransferType] = useState<'move' | 'out'>('move');
   const [activeTab, setActiveTab] = useState('all');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [transferHistory, setTransferHistory] = useState<TransferRecord[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
 
   const orgSettings = getOrgSettings();
