@@ -24,14 +24,15 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const selectedGroup = settings.unionGroups.find(g => g.name === data.unionGroupName);
   const groupLeaderName = selectedGroup?.leaderName || settings.unionGroups[0]?.leaderName || '';
 
-  // 2. LOGIC CẢI TIẾN: Kiểm tra tên tổ linh hoạt hơn
-  // Sử dụng .includes để tránh lỗi nếu gõ thừa/thiếu dấu phẩy hoặc địa danh
+  // 2. Kiểm tra tổ công đoàn có thuộc địa bàn nào không
   const currentGroupName = data.unionGroupName || "";
-  const isKeHoachTinDung = currentGroupName.includes("BP Kế hoạch - Tín dụng, PGD Cao Bằng");
+  const matchedArea = (settings.areaRepresentatives || []).find(area => 
+    area.areaName && currentGroupName.includes(area.areaName)
+  );
   
-  // Khai báo chức danh và tên dựa trên điều kiện
-  const leftSignatureTitle = isKeHoachTinDung ? "Ủy viên BCH CĐ" : "Chủ Tịch";
-  const leftSignatureName = isKeHoachTinDung ? "Trần Nam Long" : (settings.leaderName || '');
+  // Nếu thuộc địa bàn → "UV BCH Công đoàn", ngược lại → "Chủ tịch"
+  const leftSignatureTitle = matchedArea ? "UV BCH Công đoàn" : "Chủ Tịch";
+  const leftSignatureName = matchedArea ? matchedArea.officerName : (settings.leaderName || '');
 
   const labelStyle: React.CSSProperties = { margin: '8px 0', lineHeight: '1.7' };
 

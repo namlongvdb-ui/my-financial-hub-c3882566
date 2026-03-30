@@ -290,6 +290,60 @@ export function SettingsForm({ onSaved }: SettingsFormProps) {
             </div>
           </div>
 
+          {/* Area Representatives */}
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-semibold text-foreground">Phụ trách công đoàn địa bàn</Label>
+              <Button type="button" variant="outline" size="sm" onClick={() => setForm(prev => ({
+                ...prev,
+                areaRepresentatives: [...(prev.areaRepresentatives || []), { areaName: '', officerName: '' }],
+              }))}>
+                <Plus className="h-4 w-4 mr-1" /> Thêm địa bàn
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">Khi đơn vị thuộc địa bàn, phiếu thăm hỏi sẽ hiển thị "UV BCH Công đoàn" thay vì "Chủ tịch"</p>
+            <div className="space-y-3">
+              {(form.areaRepresentatives || []).map((rep, index) => (
+                <div key={index} className="flex gap-2 items-end bg-muted/30 rounded-md p-3 border border-border">
+                  <div className="flex-1">
+                    <Label className="text-muted-foreground text-xs">Tên địa bàn</Label>
+                    <Input
+                      value={rep.areaName}
+                      onChange={e => setForm(prev => ({
+                        ...prev,
+                        areaRepresentatives: prev.areaRepresentatives.map((r, i) => i === index ? { ...r, areaName: e.target.value } : r),
+                      }))}
+                      placeholder="VD: PGD Cao Bằng"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-muted-foreground text-xs">Cán bộ phụ trách</Label>
+                    <Input
+                      value={rep.officerName}
+                      onChange={e => setForm(prev => ({
+                        ...prev,
+                        areaRepresentatives: prev.areaRepresentatives.map((r, i) => i === index ? { ...r, officerName: e.target.value } : r),
+                      }))}
+                      placeholder="Họ tên cán bộ phụ trách"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive shrink-0"
+                    onClick={() => setForm(prev => ({
+                      ...prev,
+                      areaRepresentatives: prev.areaRepresentatives.filter((_, i) => i !== index),
+                    }))}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Button type="submit" className="w-full" size="lg">
             <Save className="h-4 w-4 mr-2" /> Lưu cài đặt
           </Button>
