@@ -231,7 +231,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
             return (
               <tbody key={dept}>
                 <tr>
-                  <td colSpan={8} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
+                  <td colSpan={9} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
                     {dept}
                   </td>
                 </tr>
