@@ -299,7 +299,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
           <p style={{ fontWeight: 'bold' }}>{orgSettings.accountantName}</p>
         </div>
         <div style={{ textAlign: 'center', width: '30%' }}>
-          <p style={{ fontWeight: 'bold' }}>CHỦ TỊCH CÔNG ĐOÀN</p>
+          <p style={{ fontWeight: 'bold' }}>LÃNH ĐẠO ĐƠN VỊ</p>
           <p style={{ fontStyle: 'italic', fontSize: '10px' }}>(Ký, họ tên)</p>
           <div style={{ height: '50px' }}></div>
           <p style={{ fontWeight: 'bold' }}>{orgSettings.leaderName}</p>
