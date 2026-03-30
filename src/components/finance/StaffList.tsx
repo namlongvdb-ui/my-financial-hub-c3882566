@@ -15,7 +15,7 @@ import {
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
 } from '@/lib/staff-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
