@@ -279,7 +279,7 @@ export function StaffList() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng cán bộ</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn viên</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương tối thiểu</p><p className="text-lg font-semibold text-foreground">{fmt(settings.minimumSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương vùng</p><p className="text-lg font-semibold text-foreground">{fmt(settings.regionalSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="text-lg font-bold text-primary">{fmt(Math.round(totalUnionFee))} ₫</p></CardContent></Card>
