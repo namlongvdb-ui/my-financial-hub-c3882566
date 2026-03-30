@@ -340,8 +340,15 @@ export function StaffList() {
                   <Input value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} placeholder="Nguyễn Văn A" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Đơn vị công tác</Label>
-                  <Input value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))} placeholder="Phòng Kế toán" />
+                  <Label className="text-xs text-muted-foreground">Tổ công đoàn</Label>
+                  <Select value={form.department} onValueChange={v => setForm(p => ({ ...p, department: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Chọn tổ công đoàn..." /></SelectTrigger>
+                    <SelectContent>
+                      {unionGroupNames.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Chức vụ</Label>
