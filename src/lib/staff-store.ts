@@ -43,6 +43,19 @@ export function deleteStaff(id: string) {
   saveStaffList(getStaffList().filter(s => s.id !== id));
 }
 
+export function getTransferHistory(): TransferRecord[] {
+  const stored = localStorage.getItem(TRANSFER_HISTORY_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function addTransferRecord(record: Omit<TransferRecord, 'id'>): TransferRecord {
+  const history = getTransferHistory();
+  const newRecord: TransferRecord = { ...record, id: crypto.randomUUID() };
+  history.unshift(newRecord);
+  localStorage.setItem(TRANSFER_HISTORY_KEY, JSON.stringify(history));
+  return newRecord;
+}
+
 export function calculateInsuranceSalary(
   salaryCoefficient: number,
   positionCoefficient: number,
