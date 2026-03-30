@@ -334,8 +334,19 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
                 <p className="font-semibold">{transaction.description}</p>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="sign-password">Mật khẩu ký số</Label>
+              <Input
+                id="sign-password"
+                type="password"
+                value={signPassword}
+                onChange={e => setSignPassword(e.target.value)}
+                placeholder="Nhập mật khẩu ký số..."
+                onKeyDown={e => e.key === 'Enter' && handleSign()}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
-              Hệ thống sẽ tạo mã băm SHA-256 từ dữ liệu chứng từ và ký bằng khóa RSA của bạn. Chữ ký sẽ được lưu vào cơ sở dữ liệu.
+              Nhập mật khẩu ký số để giải mã khóa bí mật và ký duyệt chứng từ.
             </p>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
