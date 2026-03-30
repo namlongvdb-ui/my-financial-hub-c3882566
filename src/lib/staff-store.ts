@@ -1,7 +1,8 @@
-import { StaffMember, StaffSettings } from '@/types/finance';
+import { StaffMember, StaffSettings, TransferRecord } from '@/types/finance';
 
 const STAFF_KEY = 'union-finance-staff';
 const STAFF_SETTINGS_KEY = 'union-finance-staff-settings';
+const TRANSFER_HISTORY_KEY = 'union-finance-transfer-history';
 
 const defaultStaffSettings: StaffSettings = {
   baseSalary: 2340000,
@@ -40,6 +41,19 @@ export function updateStaff(id: string, updates: Partial<Omit<StaffMember, 'id'>
 
 export function deleteStaff(id: string) {
   saveStaffList(getStaffList().filter(s => s.id !== id));
+}
+
+export function getTransferHistory(): TransferRecord[] {
+  const stored = localStorage.getItem(TRANSFER_HISTORY_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function addTransferRecord(record: Omit<TransferRecord, 'id'>): TransferRecord {
+  const history = getTransferHistory();
+  const newRecord: TransferRecord = { ...record, id: crypto.randomUUID() };
+  history.unshift(newRecord);
+  localStorage.setItem(TRANSFER_HISTORY_KEY, JSON.stringify(history));
+  return newRecord;
 }
 
 export function calculateInsuranceSalary(

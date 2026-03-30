@@ -56,6 +56,17 @@ export interface StaffMember {
   regionalSalary: number; // Lương vùng riêng từng đoàn viên
 }
 
+export interface TransferRecord {
+  id: string;
+  staffId: string;
+  staffName: string;
+  fromDepartment: string;
+  toDepartment: string;
+  type: 'move' | 'out';
+  date: string;
+  note?: string;
+}
+
 export interface StaffSettings {
   minimumSalary?: number; // Deprecated
   baseSalary: number; // Lương cơ sở

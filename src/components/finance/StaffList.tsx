@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -16,9 +17,11 @@ import {
   getStaffList, addStaff, updateStaff, deleteStaff,
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
+  getTransferHistory, addTransferRecord,
 } from '@/lib/staff-store';
 import { getOrgSettings } from '@/lib/finance-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut } from 'lucide-react';
+import { TransferRecord } from '@/types/finance';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
@@ -88,6 +91,8 @@ export function StaffList() {
   const [transferDept, setTransferDept] = useState('');
   const [transferType, setTransferType] = useState<'move' | 'out'>('move');
   const [activeTab, setActiveTab] = useState('all');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [transferHistory, setTransferHistory] = useState<TransferRecord[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
 
   const orgSettings = getOrgSettings();
@@ -143,6 +148,16 @@ export function StaffList() {
       toast.error('Vui lòng chọn tổ công đoàn đích');
       return;
     }
+    const record = {
+      staffId: transferTarget.id,
+      staffName: transferTarget.fullName,
+      fromDepartment: transferTarget.department,
+      toDepartment: transferType === 'out' ? 'Ra khỏi ngành' : transferDept,
+      type: transferType,
+      date: new Date().toISOString().split('T')[0],
+    };
+    addTransferRecord(record);
+
     if (transferType === 'out') {
       deleteStaff(transferTarget.id);
       toast.success(`Đã chuyển ${transferTarget.fullName} ra khỏi ngành`);
@@ -153,6 +168,11 @@ export function StaffList() {
     setTransferDialogOpen(false);
     setTransferTarget(null);
     reload();
+  };
+
+  const openHistory = () => {
+    setTransferHistory(getTransferHistory());
+    setHistoryOpen(true);
   };
 
   // Group by department
@@ -267,7 +287,10 @@ export function StaffList() {
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
           <Users className="h-6 w-6" /> Danh sách đoàn viên
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={openHistory}>
+            <History className="h-4 w-4 mr-1" /> Lịch sử điều chuyển
+          </Button>
           <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>
             <Printer className="h-4 w-4 mr-1" /> In danh sách
           </Button>
@@ -509,6 +532,52 @@ export function StaffList() {
               {transferType === 'out' ? 'Xác nhận chuyển' : 'Điều chuyển'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer history dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" /> Lịch sử điều chuyển đoàn viên
+            </DialogTitle>
+            <DialogDescription>Danh sách các lần điều chuyển, luân chuyển đoàn viên</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[400px]">
+            {transferHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">Chưa có lịch sử điều chuyển</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-10">STT</TableHead>
+                    <TableHead>Ngày</TableHead>
+                    <TableHead>Đoàn viên</TableHead>
+                    <TableHead>Từ tổ</TableHead>
+                    <TableHead>Đến tổ</TableHead>
+                    <TableHead>Loại</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transferHistory.map((r, i) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                      <TableCell className="text-sm">{new Date(r.date).toLocaleDateString('vi-VN')}</TableCell>
+                      <TableCell className="font-medium">{r.staffName}</TableCell>
+                      <TableCell className="text-sm">{r.fromDepartment}</TableCell>
+                      <TableCell className="text-sm">{r.toDepartment}</TableCell>
+                      <TableCell>
+                        <Badge variant={r.type === 'out' ? 'destructive' : 'default'} className="text-[10px]">
+                          {r.type === 'out' ? 'Ra khỏi ngành' : 'Điều chuyển'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
