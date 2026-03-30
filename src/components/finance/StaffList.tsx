@@ -16,9 +16,11 @@ import {
   getStaffList, addStaff, updateStaff, deleteStaff,
   getStaffSettings, saveStaffSettings,
   calculateInsuranceSalary, calculateUnionFee,
+  getTransferHistory, addTransferRecord,
 } from '@/lib/staff-store';
 import { getOrgSettings } from '@/lib/finance-store';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut } from 'lucide-react';
+import { TransferRecord } from '@/types/finance';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
