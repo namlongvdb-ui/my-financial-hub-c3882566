@@ -462,7 +462,7 @@ export function StaffList() {
                   <TableHead className="text-right">Lương vùng</TableHead>
                   <TableHead className="text-right">Lương BH</TableHead>
                   <TableHead className="text-right">Đoàn phí CĐ</TableHead>
-                  <TableHead className="w-28"></TableHead>
+                  <TableHead className="w-16 text-center">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
