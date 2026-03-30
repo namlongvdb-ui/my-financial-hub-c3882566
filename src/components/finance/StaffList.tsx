@@ -21,9 +21,10 @@ import {
 } from '@/lib/staff-store';
 import { getOrgSettings } from '@/lib/finance-store';
 import { TransferRecord } from '@/types/finance';
-import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History } from 'lucide-react';
+import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
+import { exportStaffListExcel } from '@/lib/export-utils';
 
 const POSITION_OPTIONS = [
   'Giám đốc', 'Phó Giám đốc', 'Trưởng phòng', 'Phó Trưởng phòng',
