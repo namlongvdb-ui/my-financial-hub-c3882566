@@ -253,7 +253,7 @@ export function StaffList() {
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Chức vụ</Label>
-                  <Input value={form.position} onChange={e => setForm(p => ({ ...p, position: e.target.value }))} placeholder="Chuyên viên" />
+                  <PositionCombobox value={form.position} onChange={v => setForm(p => ({ ...p, position: v }))} />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Ngày sinh</Label>
