@@ -237,7 +237,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
                 </tr>
                 {members.map(s => {
                   stt++;
-                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
+                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
                   const fee = calculateUnionFee(lbh, settings.baseSalary);
                   return (
                     <tr key={s.id}>
@@ -246,6 +246,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
                       <td style={cellStyle}>{s.position}</td>
                       <td style={rightCell}>{s.salaryCoefficient.toFixed(2)}</td>
                       <td style={rightCell}>{s.positionCoefficient.toFixed(2)}</td>
+                      <td style={rightCell}>{fmt(s.regionalSalary)}</td>
                       <td style={rightCell}>{fmt(Math.round(lbh))}</td>
                       <td style={rightCell}>{fmt(Math.round(fee))}</td>
                       <td style={{ ...cellStyle, width: '80px' }}></td>
