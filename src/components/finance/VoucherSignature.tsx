@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { signData, hashData, verifySignature, getPrivateKey } from '@/lib/crypto-utils';
+import { signData, hashData, verifySignature, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { Transaction } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -112,6 +112,7 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
   const [alreadySigned, setAlreadySigned] = useState(false);
   const [verifyResult, setVerifyResult] = useState<{ valid: boolean; details: string } | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [signPassword, setSignPassword] = useState('');
 
   const canSign = hasRole('lanh_dao') || hasRole('ke_toan');
 
@@ -138,9 +139,18 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
     setSigning(true);
 
     try {
-      const privateKey = getPrivateKey(user.id);
+      // Try local key first, then server key decrypted with password
+      let privateKey = getPrivateKey(user.id);
       if (!privateKey) {
-        toast.error('Không tìm thấy khóa bí mật. Vui lòng liên hệ Admin để tạo chữ ký số.');
+        if (!signPassword) {
+          toast.error('Vui lòng nhập mật khẩu ký số');
+          setSigning(false);
+          return;
+        }
+        privateKey = await getServerPrivateKey(user.id, signPassword);
+      }
+      if (!privateKey) {
+        toast.error('Không thể giải mã khóa bí mật. Kiểm tra lại mật khẩu ký.');
         setSigning(false);
         return;
       }
@@ -173,6 +183,7 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
     }
     setSigning(false);
     setDialogOpen(false);
+    setSignPassword('');
   };
 
   const handleVerify = async () => {
@@ -323,14 +334,25 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
                 <p className="font-semibold">{transaction.description}</p>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="sign-password">Mật khẩu ký số</Label>
+              <Input
+                id="sign-password"
+                type="password"
+                value={signPassword}
+                onChange={e => setSignPassword(e.target.value)}
+                placeholder="Nhập mật khẩu ký số..."
+                onKeyDown={e => e.key === 'Enter' && handleSign()}
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
-              Hệ thống sẽ tạo mã băm SHA-256 từ dữ liệu chứng từ và ký bằng khóa RSA của bạn. Chữ ký sẽ được lưu vào cơ sở dữ liệu.
+              Nhập mật khẩu ký số để giải mã khóa bí mật và ký duyệt chứng từ.
             </p>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
                 Hủy
               </Button>
-              <Button onClick={handleSign} disabled={signing} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={handleSign} disabled={signing || !signPassword} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
                 {signing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <PenTool className="w-4 h-4 mr-2" />}
                 Xác nhận ký
               </Button>

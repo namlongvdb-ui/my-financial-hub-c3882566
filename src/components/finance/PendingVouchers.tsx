@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { signData, hashData, getPrivateKey } from '@/lib/crypto-utils';
+import { signData, hashData, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { getVoucherLabel, notifyCreator, notifyLeader, getUserIdsByRole, getSigningStep } from '@/lib/notification-utils';
 import { toast } from 'sonner';
 import { PenTool, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react';
@@ -86,9 +86,13 @@ export function PendingVouchers() {
     setSigning(true);
 
     try {
-      const privateKey = getPrivateKey(user.id);
+      // Try local key first, then server key decrypted with password
+      let privateKey = getPrivateKey(user.id);
       if (!privateKey) {
-        toast.error('Chưa có chữ ký số trên thiết bị này');
+        privateKey = await getServerPrivateKey(user.id, password);
+      }
+      if (!privateKey) {
+        toast.error('Không thể giải mã khóa bí mật. Kiểm tra lại mật khẩu ký.');
         setSigning(false);
         return;
       }
