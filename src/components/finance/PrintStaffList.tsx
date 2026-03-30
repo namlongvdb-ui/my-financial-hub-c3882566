@@ -97,7 +97,7 @@ export function PrintStaffList() {
             return (
               <tbody key={dept}>
                 <tr>
-                  <td colSpan={9} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
+                  <td colSpan={10} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
                     {dept}
                   </td>
                 </tr>
