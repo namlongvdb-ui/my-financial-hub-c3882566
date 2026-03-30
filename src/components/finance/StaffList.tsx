@@ -535,6 +535,52 @@ export function StaffList() {
         </DialogContent>
       </Dialog>
 
+      {/* Transfer history dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" /> Lịch sử điều chuyển đoàn viên
+            </DialogTitle>
+            <DialogDescription>Danh sách các lần điều chuyển, luân chuyển đoàn viên</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[400px]">
+            {transferHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">Chưa có lịch sử điều chuyển</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-10">STT</TableHead>
+                    <TableHead>Ngày</TableHead>
+                    <TableHead>Đoàn viên</TableHead>
+                    <TableHead>Từ tổ</TableHead>
+                    <TableHead>Đến tổ</TableHead>
+                    <TableHead>Loại</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transferHistory.map((r, i) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                      <TableCell className="text-sm">{new Date(r.date).toLocaleDateString('vi-VN')}</TableCell>
+                      <TableCell className="font-medium">{r.staffName}</TableCell>
+                      <TableCell className="text-sm">{r.fromDepartment}</TableCell>
+                      <TableCell className="text-sm">{r.toDepartment}</TableCell>
+                      <TableCell>
+                        <Badge variant={r.type === 'out' ? 'destructive' : 'default'} className="text-[10px]">
+                          {r.type === 'out' ? 'Ra khỏi ngành' : 'Điều chuyển'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       {/* Formula note */}
       <Card className="bg-muted/30 no-print">
         <CardContent className="p-4 text-xs text-muted-foreground space-y-1">
