@@ -50,7 +50,7 @@ export function StaffList() {
       toast.success('Đã cập nhật đoàn viên');
     } else {
       addStaff(form);
-      toast.success('Đã thêm cán bộ');
+      toast.success('Đã thêm đoàn viên');
     }
     setForm(emptyStaff);
     setEditingId(null);
