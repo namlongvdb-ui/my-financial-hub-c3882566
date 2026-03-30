@@ -214,7 +214,7 @@ export function StaffList() {
               <DialogHeader><DialogTitle>Thông số lương chung</DialogTitle></DialogHeader>
               <div className="space-y-3 py-2">
                 {([
-                  ['minimumSalary', 'Lương tối thiểu (VNĐ)'],
+                  
                   ['regionalSalary', 'Lương vùng (VNĐ)'],
                   ['baseSalary', 'Lương cơ sở (VNĐ) - để tính trần đoàn phí'],
                 ] as const).map(([key, label]) => (
