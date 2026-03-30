@@ -231,7 +231,7 @@ export function StaffList() {
           {/* Add staff dialog */}
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setForm(emptyStaff); setEditingId(null); } }}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Thêm cán bộ</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Thêm đoàn viên</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>{editingId ? 'Sửa thông tin cán bộ' : 'Thêm cán bộ mới'}</DialogTitle></DialogHeader>
