@@ -103,7 +103,7 @@ export function PrintStaffList() {
                 </tr>
                 {members.map(s => {
                   stt++;
-                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
+                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
                   const fee = calculateUnionFee(lbh, settings.baseSalary);
                   return (
                     <tr key={s.id}>
