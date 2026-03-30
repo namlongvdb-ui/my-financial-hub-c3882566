@@ -96,7 +96,7 @@ export function PrintVoucher({ type, data, signatures = [] }: PrintVoucherProps)
           ))}
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>PHỤ TRÁCH KẾ TOÁN</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>KẾ TOÁN</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>

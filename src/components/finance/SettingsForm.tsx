@@ -19,7 +19,7 @@ const fields: { key: keyof OrgSettings; label: string; placeholder: string; type
   { key: 'orgName', label: 'Tên tổ chức (dòng 1)', placeholder: 'Công đoàn NHPT Việt Nam' },
   { key: 'orgSubName', label: 'Tên đơn vị (dòng 2)', placeholder: 'Công đoàn NHPT Chi nhánh KV Bắc Đông Bắc' },
   { key: 'leaderName', label: 'Lãnh đạo đơn vị', placeholder: 'Họ tên lãnh đạo' },
-  { key: 'accountantName', label: 'Phụ trách kế toán', placeholder: 'Họ tên kế toán' },
+  { key: 'accountantName', label: 'Kế toán', placeholder: 'Họ tên kế toán' },
   { key: 'treasurerName', label: 'Thủ quỹ', placeholder: 'Họ tên thủ quỹ' },
   { key: 'creatorName', label: 'Người lập', placeholder: 'Họ tên người lập' },
   { key: 'openingBalance', label: 'Số dư đầu kỳ (VNĐ)', placeholder: '50000000', type: 'number' },

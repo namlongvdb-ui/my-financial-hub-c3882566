@@ -41,7 +41,6 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
         <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
-          <p style={{ margin: 0 }}>Mẫu số: C41-BB</p>
         </div>
       </div>
 
@@ -108,7 +107,7 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.treasurerName}</p>
         </div>
         <div style={{ width: '33%' }}>
-          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Phụ trách kế toán</p>
+          <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Kế toán</p>
           <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 2px', color: '#666' }}>(Ký, họ tên)</p>
           <p style={{ minHeight: '55px' }}></p>
           <p style={{ fontWeight: 'bold', margin: 0 }}>{settings.accountantName}</p>
