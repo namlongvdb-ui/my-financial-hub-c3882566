@@ -36,7 +36,6 @@ export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
         <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
-          <p style={{ margin: 0 }}>Mẫu số: C41-BB</p>
         </div>
       </div>
 
