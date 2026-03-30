@@ -309,7 +309,7 @@ export function StaffList() {
               </TableHeader>
               <TableBody>
                 {list.length === 0 && (
-                  <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
                 )}
                 {list.map((s, i) => {
                   const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
