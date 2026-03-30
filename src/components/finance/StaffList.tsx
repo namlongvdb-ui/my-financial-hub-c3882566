@@ -18,7 +18,7 @@ import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
 const emptyStaff: Omit<StaffMember, 'id'> = {
   fullName: '', department: '', position: '', birthDate: '', gender: 'nam',
-  salaryCoefficient: 0, positionCoefficient: 0,
+  salaryCoefficient: 0, positionCoefficient: 0, regionalSalary: 2340000,
 };
 
 export function StaffList() {
