@@ -234,7 +234,7 @@ export function StaffList() {
               <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Thêm đoàn viên</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>{editingId ? 'Sửa thông tin cán bộ' : 'Thêm cán bộ mới'}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingId ? 'Sửa thông tin đoàn viên' : 'Thêm đoàn viên mới'}</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-3 py-2">
                 <div className="col-span-2">
                   <Label className="text-xs text-muted-foreground">Họ và tên</Label>
