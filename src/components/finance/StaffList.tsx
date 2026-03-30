@@ -286,7 +286,10 @@ export function StaffList() {
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
           <Users className="h-6 w-6" /> Danh sách đoàn viên
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={openHistory}>
+            <History className="h-4 w-4 mr-1" /> Lịch sử điều chuyển
+          </Button>
           <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>
             <Printer className="h-4 w-4 mr-1" /> In danh sách
           </Button>
