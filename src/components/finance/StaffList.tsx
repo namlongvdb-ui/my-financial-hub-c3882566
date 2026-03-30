@@ -633,7 +633,63 @@ export function StaffList() {
         </DialogContent>
       </Dialog>
 
-      {/* Formula note */}
+      {/* Bulk transfer dialog */}
+      <Dialog open={bulkTransferOpen} onOpenChange={setBulkTransferOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5" /> Điều chuyển đoàn viên
+            </DialogTitle>
+            <DialogDescription>Chọn đoàn viên và tổ công đoàn đích để điều chuyển</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs text-muted-foreground">Chọn đoàn viên</Label>
+              <Select value={bulkTransferStaff} onValueChange={setBulkTransferStaff}>
+                <SelectTrigger><SelectValue placeholder="Chọn đoàn viên..." /></SelectTrigger>
+                <SelectContent>
+                  {list.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.fullName} — {s.department}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Hình thức</Label>
+              <Select value={bulkTransferType} onValueChange={v => setBulkTransferType(v as 'move' | 'out')}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="move">Điều chuyển sang tổ khác</SelectItem>
+                  <SelectItem value="out">Chuyển ra khỏi ngành</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {bulkTransferType === 'move' && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Chuyển đến tổ công đoàn</Label>
+                <Select value={bulkTransferDept} onValueChange={setBulkTransferDept}>
+                  <SelectTrigger><SelectValue placeholder="Chọn tổ đích..." /></SelectTrigger>
+                  <SelectContent>
+                    {unionGroupNames.filter(n => {
+                      const staff = list.find(s => s.id === bulkTransferStaff);
+                      return n !== staff?.department;
+                    }).map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkTransferOpen(false)}>Hủy</Button>
+            <Button onClick={handleBulkTransfer} variant={bulkTransferType === 'out' ? 'destructive' : 'default'}>
+              {bulkTransferType === 'out' ? 'Xác nhận chuyển' : 'Điều chuyển'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card className="bg-muted/30 no-print">
         <CardContent className="p-4 text-xs text-muted-foreground space-y-1">
           <p><strong>Công thức tính:</strong></p>
