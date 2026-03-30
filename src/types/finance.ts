@@ -53,11 +53,11 @@ export interface StaffMember {
   gender: 'nam' | 'nu';
   salaryCoefficient: number;
   positionCoefficient: number;
+  regionalSalary: number; // Lương vùng riêng từng đoàn viên
 }
 
 export interface StaffSettings {
-  minimumSalary?: number; // Deprecated - kept for backward compat
-  regionalSalary: number; // Lương vùng
+  minimumSalary?: number; // Deprecated
   baseSalary: number; // Lương cơ sở
 }
 

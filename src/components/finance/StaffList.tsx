@@ -18,7 +18,7 @@ import { PrintStaffList, PrintMonthlyFee } from './PrintStaffList';
 
 const emptyStaff: Omit<StaffMember, 'id'> = {
   fullName: '', department: '', position: '', birthDate: '', gender: 'nam',
-  salaryCoefficient: 0, positionCoefficient: 0,
+  salaryCoefficient: 0, positionCoefficient: 0, regionalSalary: 2340000,
 };
 
 export function StaffList() {
@@ -59,7 +59,7 @@ export function StaffList() {
   };
 
   const handleEdit = (s: StaffMember) => {
-    setForm({ fullName: s.fullName, department: s.department, position: s.position, birthDate: s.birthDate, gender: s.gender, salaryCoefficient: s.salaryCoefficient, positionCoefficient: s.positionCoefficient });
+    setForm({ fullName: s.fullName, department: s.department, position: s.position, birthDate: s.birthDate, gender: s.gender, salaryCoefficient: s.salaryCoefficient, positionCoefficient: s.positionCoefficient, regionalSalary: s.regionalSalary });
     setEditingId(s.id);
     setDialogOpen(true);
   };
@@ -152,7 +152,7 @@ export function StaffList() {
 
   const totalUnionFee = useMemo(() => {
     return list.reduce((sum, s) => {
-      const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
+      const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
       return sum + calculateUnionFee(lbh, settings.baseSalary);
     }, 0);
   }, [list, settings]);
@@ -214,8 +214,6 @@ export function StaffList() {
               <DialogHeader><DialogTitle>Thông số lương chung</DialogTitle></DialogHeader>
               <div className="space-y-3 py-2">
                 {([
-                  
-                  ['regionalSalary', 'Lương vùng (VNĐ)'],
                   ['baseSalary', 'Lương cơ sở (VNĐ) - để tính trần đoàn phí'],
                 ] as const).map(([key, label]) => (
                   <div key={key}>
@@ -267,6 +265,10 @@ export function StaffList() {
                   <Input type="number" step="0.01" value={form.salaryCoefficient} onChange={e => setForm(p => ({ ...p, salaryCoefficient: Number(e.target.value) || 0 }))} />
                 </div>
                 <div>
+                  <Label className="text-xs text-muted-foreground">Lương vùng (VNĐ)</Label>
+                  <Input type="number" value={form.regionalSalary} onChange={e => setForm(p => ({ ...p, regionalSalary: Number(e.target.value) || 0 }))} />
+                </div>
+                <div>
                   <Label className="text-xs text-muted-foreground">Hệ số chức vụ</Label>
                   <Input type="number" step="0.01" value={form.positionCoefficient} onChange={e => setForm(p => ({ ...p, positionCoefficient: Number(e.target.value) || 0 }))} />
                 </div>
@@ -280,7 +282,7 @@ export function StaffList() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 no-print">
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn viên</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương vùng / Lương cơ sở</p><p className="text-lg font-semibold text-foreground">{fmt(settings.regionalSalary)} / {fmt(settings.baseSalary)} ₫</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương cơ sở</p><p className="text-lg font-semibold text-foreground">{fmt(settings.baseSalary)} ₫</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="text-lg font-bold text-primary">{fmt(Math.round(totalUnionFee))} ₫</p></CardContent></Card>
       </div>
 
@@ -299,6 +301,7 @@ export function StaffList() {
                   <TableHead className="text-center">GT</TableHead>
                   <TableHead className="text-right">HS lương</TableHead>
                   <TableHead className="text-right">HS CV</TableHead>
+                  <TableHead className="text-right">Lương vùng</TableHead>
                   <TableHead className="text-right">Lương BH</TableHead>
                   <TableHead className="text-right">Đoàn phí CĐ</TableHead>
                   <TableHead className="w-20"></TableHead>
@@ -306,10 +309,10 @@ export function StaffList() {
               </TableHeader>
               <TableBody>
                 {list.length === 0 && (
-                  <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
                 )}
                 {list.map((s, i) => {
-                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, settings);
+                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
                   const fee = calculateUnionFee(lbh, settings.baseSalary);
                   return (
                     <TableRow key={s.id}>
@@ -321,6 +324,7 @@ export function StaffList() {
                       <TableCell className="text-center text-sm">{s.gender === 'nam' ? 'Nam' : 'Nữ'}</TableCell>
                       <TableCell className="text-right font-mono">{s.salaryCoefficient.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-mono">{s.positionCoefficient.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-mono">{fmt(s.regionalSalary)}</TableCell>
                       <TableCell className="text-right font-semibold">{fmt(Math.round(lbh))}</TableCell>
                       <TableCell className="text-right font-semibold text-primary">{fmt(Math.round(fee))}</TableCell>
                       <TableCell>
