@@ -59,7 +59,7 @@ export function StaffList() {
   };
 
   const handleEdit = (s: StaffMember) => {
-    setForm({ fullName: s.fullName, department: s.department, position: s.position, birthDate: s.birthDate, gender: s.gender, salaryCoefficient: s.salaryCoefficient, positionCoefficient: s.positionCoefficient });
+    setForm({ fullName: s.fullName, department: s.department, position: s.position, birthDate: s.birthDate, gender: s.gender, salaryCoefficient: s.salaryCoefficient, positionCoefficient: s.positionCoefficient, regionalSalary: s.regionalSalary });
     setEditingId(s.id);
     setDialogOpen(true);
   };
