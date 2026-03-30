@@ -27,7 +27,7 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   // 2. LOGIC CẢI TIẾN: Kiểm tra tên tổ linh hoạt hơn
   // Sử dụng .includes để tránh lỗi nếu gõ thừa/thiếu dấu phẩy hoặc địa danh
   const currentGroupName = data.unionGroupName || "";
-  const isKeHoachTinDung = currentGroupName.includes("BP Kế hoạch - Tín dụng");
+  const isKeHoachTinDung = currentGroupName.includes("BP Kế hoạch - Tín dụng, PGD Cao Bằng");
   
   // Khai báo chức danh và tên dựa trên điều kiện
   const leftSignatureTitle = isKeHoachTinDung ? "Ủy viên BCH CĐ" : "Chủ Tịch";
