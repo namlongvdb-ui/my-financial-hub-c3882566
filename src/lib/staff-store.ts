@@ -45,9 +45,10 @@ export function deleteStaff(id: string) {
 export function calculateInsuranceSalary(
   salaryCoefficient: number,
   positionCoefficient: number,
-  settings: StaffSettings
+  regionalSalary: number,
+  baseSalary: number
 ): number {
-  return (salaryCoefficient * settings.regionalSalary) + (positionCoefficient * settings.baseSalary);
+  return (salaryCoefficient * regionalSalary) + (positionCoefficient * baseSalary);
 }
 
 export function calculateUnionFee(insuranceSalary: number, baseSalary: number): number {
