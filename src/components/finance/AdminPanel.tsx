@@ -25,6 +25,7 @@ interface UserWithRole {
   roles: AppRole[];
   has_signature: boolean;
   is_banned: boolean;
+  assigned_area: string | null;
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
