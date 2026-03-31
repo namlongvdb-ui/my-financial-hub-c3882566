@@ -369,12 +369,25 @@ export function AdminPanel() {
                     </TableCell>
                     <TableCell>
                       {u.assigned_area ? (
-                        <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
-                          {u.assigned_area}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {u.assigned_area.split(',').map(area => (
+                            <Badge key={area} variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 text-xs">
+                              {area.trim()}
+                            </Badge>
+                          ))}
+                        </div>
                       ) : u.roles.includes('phu_trach_dia_ban') ? (
                         <span className="text-xs text-muted-foreground">Chưa gán</span>
                       ) : '—'}
+                      {u.roles.includes('phu_trach_dia_ban') && (
+                        <Button size="sm" variant="ghost" className="ml-1 h-6 px-1" onClick={() => {
+                          setAreaTarget({ user_id: u.user_id, full_name: u.full_name });
+                          setEditAreas(u.assigned_area ? u.assigned_area.split(',').map(a => a.trim()) : []);
+                          setAreaDialogOpen(true);
+                        }}>
+                          <MapPin className="w-3 h-3" />
+                        </Button>
+                      )}
                     </TableCell>
                     <TableCell>
                       {u.has_signature ? (
