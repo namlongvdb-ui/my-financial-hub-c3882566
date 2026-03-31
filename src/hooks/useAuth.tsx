@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [profile, setProfile] = useState<{ full_name: string; email: string | null; username: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; email: string | null; username: string | null; assigned_area: string | null } | null>(null);
 
   const fetchUserData = async (userId: string) => {
     const [rolesResult, profileResult] = await Promise.all([
