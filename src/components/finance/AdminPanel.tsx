@@ -219,9 +219,9 @@ export function AdminPanel() {
       // Encrypt private key with the provided password
       const encryptedPrivateKey = await encryptPrivateKey(privateKey, signaturePassword);
 
-      // Deactivate any existing keys first
+      // Remove existing keys for this user first
       await supabase.from('digital_signatures')
-        .update({ is_active: false })
+        .delete()
         .eq('user_id', signatureTarget.user_id);
 
       const { error } = await supabase.from('digital_signatures').insert({
