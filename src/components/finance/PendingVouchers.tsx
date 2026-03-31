@@ -208,11 +208,48 @@ export function PendingVouchers() {
   return (
     <Card className="shadow-lg border-0 ring-1 ring-border">
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-b-2 border-amber-200 dark:border-amber-800">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-            <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+              <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Chứng từ chờ ký duyệt {roleLabel}</CardTitle>
+              {filteredVouchers.length !== vouchers.length && (
+                <p className="text-xs text-muted-foreground mt-0.5">{filteredVouchers.length}/{vouchers.length} kết quả</p>
+              )}
+            </div>
           </div>
-          <CardTitle className="text-xl">Chứng từ chờ ký duyệt {roleLabel}</CardTitle>
+          <div className="flex items-center gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Từ ngày'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+            <span className="text-xs text-muted-foreground">→</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Đến ngày'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+            {(dateFrom || dateTo) && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
