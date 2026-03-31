@@ -332,5 +332,26 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
       </Card>
       )}
     </div>
+
+    {/* Print Preview Dialog */}
+    <Dialog open={!!previewTx} onOpenChange={open => { if (!open) setPreviewTx(null); }}>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        {previewTx && (type === 'thu' || type === 'chi') && (
+          <PrintVoucher type={type} data={previewTx} />
+        )}
+        {previewTx && type === 'tham-hoi' && (
+          <PrintVisitVoucher data={previewTx} />
+        )}
+        {previewTx && type === 'de-nghi' && (
+          <PrintPaymentRequest data={previewTx} />
+        )}
+        <div className="flex justify-end mt-4">
+          <Button onClick={() => { window.print(); }} variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-1" /> In chứng từ
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
