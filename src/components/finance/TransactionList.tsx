@@ -110,6 +110,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   };
 
   return (
+    <>
     <div className="max-w-5xl mx-auto mt-8 no-print">
       {/* Toggle button */}
       <button
