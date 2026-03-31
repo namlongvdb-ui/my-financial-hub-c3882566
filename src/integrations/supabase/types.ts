@@ -14,212 +14,16 @@ export type Database = {
   }
   public: {
     Tables: {
-      digital_signatures: {
-        Row: {
-          created_at: string
-          created_by: string
-          encrypted_private_key: string | null
-          id: string
-          is_active: boolean
-          public_key: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          encrypted_private_key?: string | null
-          id?: string
-          is_active?: boolean
-          public_key: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          encrypted_private_key?: string | null
-          id?: string
-          is_active?: boolean
-          public_key?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          message: string
-          related_voucher_id: string | null
-          related_voucher_type: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message: string
-          related_voucher_id?: string | null
-          related_voucher_type?: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message?: string
-          related_voucher_id?: string | null
-          related_voucher_type?: string | null
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      pending_vouchers: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          printed_at: string | null
-          signed_at: string | null
-          status: string
-          voucher_data: Json
-          voucher_id: string
-          voucher_type: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          printed_at?: string | null
-          signed_at?: string | null
-          status?: string
-          voucher_data: Json
-          voucher_id: string
-          voucher_type: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          printed_at?: string | null
-          signed_at?: string | null
-          status?: string
-          voucher_data?: Json
-          voucher_id?: string
-          voucher_type?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          assigned_area: string | null
-          created_at: string
-          email: string | null
-          full_name: string
-          id: string
-          updated_at: string
-          user_id: string
-          username: string | null
-        }
-        Insert: {
-          assigned_area?: string | null
-          created_at?: string
-          email?: string | null
-          full_name: string
-          id?: string
-          updated_at?: string
-          user_id: string
-          username?: string | null
-        }
-        Update: {
-          assigned_area?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      voucher_signatures: {
-        Row: {
-          data_hash: string
-          id: string
-          signature: string
-          signed_at: string
-          signer_id: string
-          voucher_id: string
-          voucher_type: string
-        }
-        Insert: {
-          data_hash: string
-          id?: string
-          signature: string
-          signed_at?: string
-          signer_id: string
-          voucher_id: string
-          voucher_type: string
-        }
-        Update: {
-          data_hash?: string
-          id?: string
-          signature?: string
-          signed_at?: string
-          signer_id?: string
-          voucher_id?: string
-          voucher_type?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role:
-        | "admin"
-        | "lanh_dao"
-        | "nguoi_lap"
-        | "ke_toan"
-        | "phu_trach_dia_ban"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -346,14 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: [
-        "admin",
-        "lanh_dao",
-        "nguoi_lap",
-        "ke_toan",
-        "phu_trach_dia_ban",
-      ],
-    },
+    Enums: {},
   },
 } as const
