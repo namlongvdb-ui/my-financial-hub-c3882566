@@ -270,6 +270,7 @@ export function AdminPanel() {
                     <SelectItem value="lanh_dao">Lãnh đạo</SelectItem>
                     <SelectItem value="ke_toan">Kế toán</SelectItem>
                     <SelectItem value="nguoi_lap">Người lập</SelectItem>
+                    <SelectItem value="phu_trach_dia_ban">Phụ trách địa bàn</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
