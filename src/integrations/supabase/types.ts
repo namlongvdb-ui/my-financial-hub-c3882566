@@ -118,6 +118,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assigned_area: string | null
           created_at: string
           email: string | null
           full_name: string
@@ -127,6 +128,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          assigned_area?: string | null
           created_at?: string
           email?: string | null
           full_name: string
@@ -136,6 +138,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          assigned_area?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
