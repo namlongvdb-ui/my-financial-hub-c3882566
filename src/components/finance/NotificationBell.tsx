@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +18,7 @@ interface Notification {
   related_voucher_type: string | null;
   is_read: boolean;
   created_at: string;
-  voucher_status?: string; // enriched from pending_vouchers
+  voucher_status?: string;
 }
 
 interface NotificationBellProps {
@@ -29,6 +29,7 @@ const voucherStatusLabels: Record<string, { label: string; className: string }> 
   pending: { label: 'Chờ duyệt', className: 'bg-amber-100 text-amber-700 border-amber-300' },
   partially_signed: { label: 'Đã ký 1 bước', className: 'bg-blue-100 text-blue-700 border-blue-300' },
   signed: { label: 'Đã duyệt xong', className: 'bg-green-100 text-green-700 border-green-300' },
+  printed: { label: 'Đã in', className: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
   unknown: { label: '', className: '' },
 };
 
@@ -37,7 +38,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from('notifications')
@@ -73,12 +74,14 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
     }));
 
     setNotifications(enriched);
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchNotifications();
 
     if (!user) return;
+
+    // Listen to new/changed notifications
     const channel = supabase
       .channel('notifications-' + user.id)
       .on(
@@ -93,7 +96,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
       )
       .subscribe();
 
-    // Also listen to pending_vouchers changes to update status in real-time
+    // Listen to pending_vouchers status changes (signed, printed, etc.)
     const voucherChannel = supabase
       .channel('voucher-status-' + user.id)
       .on(
@@ -105,13 +108,37 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
         },
         () => fetchNotifications()
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pending_vouchers',
+        },
+        () => fetchNotifications()
+      )
+      .subscribe();
+
+    // Listen to voucher_signatures changes (new signatures affect status)
+    const sigChannel = supabase
+      .channel('voucher-sigs-' + user.id)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'voucher_signatures',
+        },
+        () => fetchNotifications()
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(voucherChannel);
+      supabase.removeChannel(sigChannel);
     };
-  }, [user]);
+  }, [user, fetchNotifications]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -131,7 +158,10 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
   const handleClickNotification = (n: Notification) => {
     markAsRead(n.id);
     setOpen(false);
-    if (n.type === 'sign_request') {
+    // Navigate based on current voucher status, not just notification type
+    if (n.voucher_status === 'signed' || n.voucher_status === 'printed') {
+      onNavigate('da-duyet');
+    } else if (n.type === 'sign_request') {
       onNavigate('cho-ky');
     } else if (n.type === 'signed' || n.type === 'ready_to_print') {
       onNavigate('da-duyet');
