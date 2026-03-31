@@ -242,53 +242,70 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                             </TableCell>
                           )}
                           <TableCell>
-                            {locked ? (
+                            <div className="flex items-center gap-0.5">
+                              {/* Print preview button - always visible */}
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">
-                                    Đã duyệt
-                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    onClick={(e) => { e.stopPropagation(); setPreviewTx(tx); }}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
+                                <TooltipContent>Xem trước khi in</TooltipContent>
                               </Tooltip>
-                            ) : (
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                  onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                        Xóa
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            )}
+
+                              {locked ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">
+                                      Đã duyệt
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
+                                </Tooltip>
+                              ) : editable ? (
+                                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                          Xóa
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              ) : null}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
