@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserData = async (userId: string) => {
     const [rolesResult, profileResult] = await Promise.all([
       supabase.from('user_roles').select('role').eq('user_id', userId),
-      supabase.from('profiles').select('full_name, email, username').eq('user_id', userId).single()
+      supabase.from('profiles').select('full_name, email, username, assigned_area').eq('user_id', userId).single()
     ]);
 
     if (rolesResult.data) {
