@@ -18,8 +18,15 @@ export async function getSignerUserIds(): Promise<string[]> {
   return data ? [...new Set(data.map(d => d.user_id))] : [];
 }
 
-// Người lập tạo chứng từ → thông báo người ký phù hợp theo loại chứng từ
-export async function notifyLeader(
+/**
+ * Workflow luân chuyển chứng từ:
+ * 1. Người lập tạo chứng từ → thông báo kế toán (thu/chi/đề nghị) hoặc phụ trách địa bàn (thăm hỏi)
+ * 2. Kế toán / phụ trách địa bàn ký xong → thông báo lãnh đạo
+ * 3. Lãnh đạo ký xong → thông báo người lập để in chứng từ
+ */
+
+// Step 1: Người lập tạo chứng từ → thông báo kế toán hoặc phụ trách địa bàn (KHÔNG lãnh đạo)
+export async function notifyFirstSigners(
   voucherId: string,
   voucherType: string,
   voucherLabel: string,
@@ -28,19 +35,11 @@ export async function notifyLeader(
   let signerIds: string[] = [];
 
   if (voucherType === 'tham-hoi') {
-    // Phiếu thăm hỏi: chỉ thông báo lãnh đạo và phụ trách địa bàn (không kế toán)
-    const [leaderIds, areaRepIds] = await Promise.all([
-      getUserIdsByRole('lanh_dao'),
-      getUserIdsByRole('phu_trach_dia_ban'),
-    ]);
-    signerIds = [...new Set([...leaderIds, ...areaRepIds])];
+    // Phiếu thăm hỏi: thông báo phụ trách địa bàn trước
+    signerIds = await getUserIdsByRole('phu_trach_dia_ban');
   } else {
-    // Thu/chi/đề nghị: chỉ thông báo lãnh đạo và kế toán (không phụ trách địa bàn)
-    const [leaderIds, accountantIds] = await Promise.all([
-      getUserIdsByRole('lanh_dao'),
-      getUserIdsByRole('ke_toan'),
-    ]);
-    signerIds = [...new Set([...leaderIds, ...accountantIds])];
+    // Thu/chi/đề nghị: thông báo kế toán trước
+    signerIds = await getUserIdsByRole('ke_toan');
   }
 
   if (signerIds.length === 0) return;
@@ -57,8 +56,32 @@ export async function notifyLeader(
   await supabase.from('notifications').insert(notifications);
 }
 
-// Lãnh đạo ký xong → thông báo người lập (người tạo)
-export async function notifyCreator(
+// Step 2: Kế toán / phụ trách địa bàn ký xong → thông báo lãnh đạo
+export async function notifyLeaderAfterFirstSign(
+  voucherId: string,
+  voucherType: string,
+  voucherLabel: string,
+  signerName: string
+) {
+  const leaderIds = await getUserIdsByRole('lanh_dao');
+  if (leaderIds.length === 0) return;
+
+  const roleName = voucherType === 'tham-hoi' ? 'Phụ trách địa bàn' : 'Kế toán';
+
+  const notifications = leaderIds.map(userId => ({
+    user_id: userId,
+    type: 'sign_request' as const,
+    title: 'Chứng từ đã qua bước duyệt đầu',
+    message: `${roleName} ${signerName} đã ký ${voucherLabel} số ${voucherId}. Vui lòng ký duyệt.`,
+    related_voucher_id: voucherId,
+    related_voucher_type: voucherType,
+  }));
+
+  await supabase.from('notifications').insert(notifications);
+}
+
+// Step 3: Lãnh đạo ký xong → thông báo người lập để in chứng từ
+export async function notifyCreatorToprint(
   creatorId: string,
   voucherId: string,
   voucherType: string,
@@ -67,22 +90,32 @@ export async function notifyCreator(
 ) {
   await supabase.from('notifications').insert({
     user_id: creatorId,
-    type: 'signed',
+    type: 'ready_to_print',
     title: 'Chứng từ đã được duyệt hoàn tất',
-    message: `${signerName} đã ký duyệt ${voucherLabel} số ${voucherId}. Chứng từ hoàn thành.`,
+    message: `Lãnh đạo ${signerName} đã ký duyệt ${voucherLabel} số ${voucherId}. Bạn có thể in chứng từ.`,
     related_voucher_id: voucherId,
     related_voucher_type: voucherType,
   });
 }
 
-// Notify signers (leader) when voucher is submitted
+// Legacy aliases
 export async function notifySigners(
   voucherId: string,
   voucherType: string,
   voucherLabel: string,
   creatorName: string
 ) {
-  await notifyLeader(voucherId, voucherType, voucherLabel, creatorName);
+  await notifyFirstSigners(voucherId, voucherType, voucherLabel, creatorName);
+}
+
+export async function notifyCreator(
+  creatorId: string,
+  voucherId: string,
+  voucherType: string,
+  voucherLabel: string,
+  signerName: string
+) {
+  await notifyCreatorToprint(creatorId, voucherId, voucherType, voucherLabel, signerName);
 }
 
 export async function submitVoucherForSigning(
@@ -100,8 +133,16 @@ export async function submitVoucherForSigning(
   });
 }
 
-// Determine the signing step
-export async function getSigningStep(voucherId: string): Promise<'pending' | 'fully_signed'> {
+/**
+ * Determine signing step for a voucher:
+ * - 'pending': chưa có ai ký
+ * - 'first_signed': kế toán/phụ trách đã ký, chờ lãnh đạo
+ * - 'fully_signed': lãnh đạo đã ký, hoàn tất
+ */
+export async function getSigningStep(
+  voucherId: string,
+  voucherType: string
+): Promise<'pending' | 'first_signed' | 'fully_signed'> {
   const { data: sigs } = await supabase
     .from('voucher_signatures')
     .select('signer_id')
@@ -110,15 +151,20 @@ export async function getSigningStep(voucherId: string): Promise<'pending' | 'fu
   if (!sigs || sigs.length === 0) return 'pending';
 
   const signerIdsSet = new Set(sigs.map(s => s.signer_id));
-  const [leaderIds, accountantIds, areaRepIds] = await Promise.all([
-    getUserIdsByRole('lanh_dao'),
-    getUserIdsByRole('ke_toan'),
-    getUserIdsByRole('phu_trach_dia_ban'),
-  ]);
-  const allSignerRoleIds = [...leaderIds, ...accountantIds, ...areaRepIds];
-  const signerSigned = allSignerRoleIds.some(id => signerIdsSet.has(id));
+  
+  const leaderIds = await getUserIdsByRole('lanh_dao');
+  const leaderSigned = leaderIds.some(id => signerIdsSet.has(id));
+  if (leaderSigned) return 'fully_signed';
 
-  if (signerSigned) return 'fully_signed';
+  // Check if first signer (kế toán or phụ trách) has signed
+  if (voucherType === 'tham-hoi') {
+    const areaRepIds = await getUserIdsByRole('phu_trach_dia_ban');
+    if (areaRepIds.some(id => signerIdsSet.has(id))) return 'first_signed';
+  } else {
+    const accountantIds = await getUserIdsByRole('ke_toan');
+    if (accountantIds.some(id => signerIdsSet.has(id))) return 'first_signed';
+  }
+
   return 'pending';
 }
 
