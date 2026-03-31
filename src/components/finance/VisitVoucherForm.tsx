@@ -97,7 +97,7 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
       
       if (user) {
         submitVoucherForSigning(form.voucherNo, 'tham-hoi', txData, user.id);
-        notifySigners(form.voucherNo, 'tham-hoi', getVoucherLabel('tham-hoi'), profile?.full_name || 'Kế toán');
+        notifySigners(form.voucherNo, 'tham-hoi', getVoucherLabel('tham-hoi'), profile?.full_name || 'Kế toán', form.unionGroupName);
       }
       
       toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được lưu`);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getOrgSettings } from '@/lib/finance-store';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ interface UserWithRole {
   roles: AppRole[];
   has_signature: boolean;
   is_banned: boolean;
+  assigned_area: string | null;
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -57,6 +59,7 @@ export function AdminPanel() {
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<AppRole>('nguoi_lap');
   const [creating, setCreating] = useState(false);
+  const [newAssignedArea, setNewAssignedArea] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ user_id: string; full_name: string } | null>(null);
   const [managing, setManaging] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
@@ -71,7 +74,7 @@ export function AdminPanel() {
   const fetchUsers = async () => {
     setLoading(true);
     const [profilesRes, rolesRes, sigsRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name, username'),
+      supabase.from('profiles').select('user_id, full_name, username, assigned_area'),
       supabase.from('user_roles').select('user_id, role'),
       supabase.from('digital_signatures').select('user_id').eq('is_active', true),
     ]);
@@ -86,6 +89,7 @@ export function AdminPanel() {
           roles: [],
           has_signature: false,
           is_banned: false,
+          assigned_area: p.assigned_area,
         });
       });
 
@@ -106,8 +110,14 @@ export function AdminPanel() {
 
   useEffect(() => { fetchUsers(); }, []);
 
+  const orgSettings = getOrgSettings();
+
   const handleCreateUser = async () => {
     if (!newUsername || !newPassword || !newFullName || !newRole) return;
+    if (newRole === 'phu_trach_dia_ban' && !newAssignedArea) {
+      toast({ title: 'Lỗi', description: 'Vui lòng chọn địa bàn phụ trách', variant: 'destructive' });
+      return;
+    }
     setCreating(true);
 
     try {
@@ -118,12 +128,20 @@ export function AdminPanel() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      // Update assigned_area for phu_trach_dia_ban
+      if (newRole === 'phu_trach_dia_ban' && newAssignedArea && data?.user?.id) {
+        await supabase.from('profiles')
+          .update({ assigned_area: newAssignedArea })
+          .eq('user_id', data.user.id);
+      }
+
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
       setNewUsername('');
       setNewPassword('');
       setNewFullName('');
       setNewRole('nguoi_lap');
+      setNewAssignedArea('');
       fetchUsers();
     } catch (err: any) {
       toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
@@ -274,6 +292,21 @@ export function AdminPanel() {
                   </SelectContent>
                 </Select>
               </div>
+              {newRole === 'phu_trach_dia_ban' && (
+                <div className="space-y-2">
+                  <Label>Địa bàn phụ trách</Label>
+                  <Select value={newAssignedArea} onValueChange={setNewAssignedArea}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn địa bàn..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orgSettings.unionGroups.map(g => (
+                        <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Button onClick={handleCreateUser} disabled={creating} className="w-full">
                 {creating ? 'Đang tạo...' : 'Tạo tài khoản'}
               </Button>
@@ -300,6 +333,7 @@ export function AdminPanel() {
                   <TableHead>Họ tên</TableHead>
                   <TableHead>Tên đăng nhập</TableHead>
                   <TableHead>Vai trò</TableHead>
+                  <TableHead>Địa bàn</TableHead>
                   <TableHead>Chữ ký số</TableHead>
                   <TableHead>Thao tác</TableHead>
                 </TableRow>
@@ -317,6 +351,15 @@ export function AdminPanel() {
                           </Badge>
                         ))}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {u.assigned_area ? (
+                        <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+                          {u.assigned_area}
+                        </Badge>
+                      ) : u.roles.includes('phu_trach_dia_ban') ? (
+                        <span className="text-xs text-muted-foreground">Chưa gán</span>
+                      ) : '—'}
                     </TableCell>
                     <TableCell>
                       {u.has_signature ? (

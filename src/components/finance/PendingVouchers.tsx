@@ -52,6 +52,9 @@ export function PendingVouchers() {
 
     if (!pendingData) { setLoading(false); return; }
 
+    // Get current user's assigned area for area-based filtering
+    const userAssignedArea = profile?.assigned_area || null;
+
     const filteredVouchers: PendingVoucher[] = [];
 
     for (const v of pendingData) {
@@ -63,6 +66,9 @@ export function PendingVouchers() {
         // Bước 1: chờ kế toán (thu/chi/đề nghị) hoặc phụ trách địa bàn (thăm hỏi)
         if (v.voucher_type === 'tham-hoi') {
           if (!isAreaRep) continue; // chỉ phụ trách địa bàn thấy
+          // Chỉ phụ trách của đúng địa bàn mới thấy phiếu thăm hỏi
+          const voucherArea = (v.voucher_data as any)?.department || (v.voucher_data as any)?.unionGroupName || '';
+          if (userAssignedArea && voucherArea && userAssignedArea !== voucherArea) continue;
         } else {
           if (!isAccountant) continue; // chỉ kế toán thấy
         }
