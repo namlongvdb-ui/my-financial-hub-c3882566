@@ -1,0 +1,1 @@
+ALTER TABLE public.digital_signatures ADD COLUMN IF NOT EXISTS encrypted_private_key text;
