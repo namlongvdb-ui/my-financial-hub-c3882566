@@ -333,6 +333,7 @@ export function AdminPanel() {
                   <TableHead>Họ tên</TableHead>
                   <TableHead>Tên đăng nhập</TableHead>
                   <TableHead>Vai trò</TableHead>
+                  <TableHead>Địa bàn</TableHead>
                   <TableHead>Chữ ký số</TableHead>
                   <TableHead>Thao tác</TableHead>
                 </TableRow>
