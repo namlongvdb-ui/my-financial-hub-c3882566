@@ -124,9 +124,10 @@ export async function notifySigners(
   voucherId: string,
   voucherType: string,
   voucherLabel: string,
-  creatorName: string
+  creatorName: string,
+  areaName?: string
 ) {
-  await notifyFirstSigners(voucherId, voucherType, voucherLabel, creatorName);
+  await notifyFirstSigners(voucherId, voucherType, voucherLabel, creatorName, areaName);
 }
 
 export async function notifyCreator(
