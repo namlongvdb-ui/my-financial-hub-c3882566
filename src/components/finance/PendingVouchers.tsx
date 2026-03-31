@@ -67,8 +67,10 @@ export function PendingVouchers() {
         if (v.voucher_type === 'tham-hoi') {
           if (!isAreaRep) continue; // chỉ phụ trách địa bàn thấy
           // Chỉ phụ trách của đúng địa bàn mới thấy phiếu thăm hỏi
-          const voucherArea = (v.voucher_data as any)?.department || (v.voucher_data as any)?.unionGroupName || '';
-          if (userAssignedArea && voucherArea && userAssignedArea !== voucherArea) continue;
+          // Lọc theo địa bàn (areaName trong cài đặt), không phải tổ công đoàn
+          // Tên tổ CĐ chứa tên địa bàn, VD: "Tổ CĐ BP Kế toán – Hành chính, PGD Cao Bằng" chứa "PGD Cao Bằng"
+          const voucherUnionGroup = (v.voucher_data as any)?.department || (v.voucher_data as any)?.unionGroupName || '';
+          if (userAssignedArea && voucherUnionGroup && !voucherUnionGroup.includes(userAssignedArea)) continue;
         } else {
           if (!isAccountant) continue; // chỉ kế toán thấy
         }
