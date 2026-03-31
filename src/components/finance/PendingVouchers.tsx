@@ -277,7 +277,7 @@ export function PendingVouchers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vouchers.map(v => (
+              {filteredVouchers.map(v => (
                 <TableRow key={v.id}>
                   <TableCell>
                     <Badge variant="outline">{getVoucherLabel(v.voucher_type)}</Badge>
