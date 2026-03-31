@@ -14,13 +14,20 @@ export async function getAreaRepsByArea(areaName: string): Promise<string[]> {
   const areaRepIds = await getUserIdsByRole('phu_trach_dia_ban');
   if (areaRepIds.length === 0) return [];
 
+  // Lọc theo địa bàn: tên tổ CĐ chứa tên địa bàn (assigned_area)
+  // VD: areaName = "Tổ CĐ BP Kế toán, PGD Cao Bằng", assigned_area = "PGD Cao Bằng"
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('user_id')
+    .select('user_id, assigned_area')
     .in('user_id', areaRepIds)
-    .eq('assigned_area', areaName);
+    .not('assigned_area', 'is', null);
 
-  return profiles ? profiles.map(p => p.user_id) : [];
+  // Filter: union group name contains the rep's assigned_area
+  const filtered = (profiles || []).filter(p => 
+    p.assigned_area && areaName.includes(p.assigned_area)
+  );
+
+  return filtered.map(p => p.user_id);
 }
 
 export async function getSignerUserIds(): Promise<string[]> {
