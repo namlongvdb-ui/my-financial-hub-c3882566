@@ -5,7 +5,7 @@ export async function getUserIdsByRole(role: string): Promise<string[]> {
   const { data } = await supabase
     .from('user_roles')
     .select('user_id')
-    .eq('role', role);
+    .eq('role', role as any);
   return data ? data.map(d => d.user_id) : [];
 }
 
