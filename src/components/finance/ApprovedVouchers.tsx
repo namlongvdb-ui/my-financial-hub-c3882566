@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getVoucherLabel } from '@/lib/notification-utils';
 import { toast } from 'sonner';
-import { Printer, CheckCircle2, FileCheck, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { Printer, CheckCircle2, FileCheck, Loader2, CalendarIcon, X } from 'lucide-react';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { PrintVoucher } from './PrintVoucher';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
 import { PrintPaymentRequest } from './PrintPaymentRequest';
@@ -37,6 +40,8 @@ export function ApprovedVouchers() {
   const [loading, setLoading] = useState(true);
   const [printingVoucher, setPrintingVoucher] = useState<ApprovedVoucher | null>(null);
   const [printSignatures, setPrintSignatures] = useState<SignatureDisplay[]>([]);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const printRef = useRef<HTMLDivElement>(null);
 
   const fetchApproved = useCallback(async () => {
@@ -54,6 +59,19 @@ export function ApprovedVouchers() {
   }, [user]);
 
   useEffect(() => { fetchApproved(); }, [fetchApproved]);
+
+  const filteredVouchers = useMemo(() => {
+    if (!dateFrom && !dateTo) return vouchers;
+    return vouchers.filter(v => {
+      const vDate = new Date(v.voucher_data?.date || v.created_at);
+      if (dateFrom && dateTo) {
+        return isWithinInterval(vDate, { start: startOfDay(dateFrom), end: endOfDay(dateTo) });
+      }
+      if (dateFrom) return vDate >= startOfDay(dateFrom);
+      if (dateTo) return vDate <= endOfDay(dateTo);
+      return true;
+    });
+  }, [vouchers, dateFrom, dateTo]);
 
   const fetchSignatures = async (voucherId: string, voucherType: string): Promise<SignatureDisplay[]> => {
     const { data: sigs } = await supabase
@@ -82,22 +100,16 @@ export function ApprovedVouchers() {
   };
 
   const handlePrint = async (voucher: ApprovedVoucher) => {
-    // Fetch signatures for this voucher
     const sigs = await fetchSignatures(voucher.voucher_id, voucher.voucher_type);
     setPrintSignatures(sigs);
     setPrintingVoucher(voucher);
 
-    // Wait for render then print
     setTimeout(() => {
       window.print();
-      
-      // Mark as printed after printing
       supabase.from('pending_vouchers')
         .update({ status: 'printed', printed_at: new Date().toISOString() })
         .eq('id', voucher.id)
-        .then(() => {
-          fetchApproved();
-        });
+        .then(() => { fetchApproved(); });
     }, 300);
   };
 
@@ -168,11 +180,48 @@ export function ApprovedVouchers() {
     <>
       <Card className="shadow-lg border-0 ring-1 ring-border">
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-b-2 border-green-200 dark:border-green-800">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-              <FileCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                <FileCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Chứng từ đã duyệt</CardTitle>
+                {filteredVouchers.length !== vouchers.length && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{filteredVouchers.length}/{vouchers.length} kết quả</p>
+                )}
+              </div>
             </div>
-            <CardTitle className="text-xl">Chứng từ đã duyệt</CardTitle>
+            <div className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Từ ngày'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">→</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Đến ngày'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              {(dateFrom || dateTo) && (
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -180,10 +229,10 @@ export function ApprovedVouchers() {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : vouchers.length === 0 ? (
+          ) : filteredVouchers.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <CheckCircle2 className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-              <p>Chưa có chứng từ nào được duyệt</p>
+              <p>{dateFrom || dateTo ? 'Không có chứng từ trong khoảng thời gian này' : 'Chưa có chứng từ nào được duyệt'}</p>
             </div>
           ) : (
             <Table>
@@ -200,7 +249,7 @@ export function ApprovedVouchers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vouchers.map(v => (
+                {filteredVouchers.map(v => (
                   <TableRow key={v.id}>
                     <TableCell>
                       <Badge variant="outline">{getVoucherLabel(v.voucher_type)}</Badge>

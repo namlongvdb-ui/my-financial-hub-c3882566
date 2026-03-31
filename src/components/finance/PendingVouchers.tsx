@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,8 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { getVoucherLabel, notifyLeaderAfterFirstSign, notifyCreatorToprint, getSigningStep } from '@/lib/notification-utils';
 import { toast } from 'sonner';
-import { PenTool, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { PenTool, CheckCircle2, ClipboardList, Loader2, CalendarIcon, X } from 'lucide-react';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 interface PendingVoucher {
   id: string;
@@ -34,6 +37,8 @@ export function PendingVouchers() {
   const [selectedVoucher, setSelectedVoucher] = useState<PendingVoucher | null>(null);
   const [password, setPassword] = useState('');
   const [signing, setSigning] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   const isLeader = hasRole('lanh_dao');
   const isAccountant = hasRole('ke_toan');
@@ -105,6 +110,19 @@ export function PendingVouchers() {
   }, [user, isLeader, isAccountant, isAreaRep]);
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
+
+  const filteredVouchers = useMemo(() => {
+    if (!dateFrom && !dateTo) return vouchers;
+    return vouchers.filter(v => {
+      const vDate = new Date(v.voucher_data?.date || v.created_at);
+      if (dateFrom && dateTo) {
+        return isWithinInterval(vDate, { start: startOfDay(dateFrom), end: endOfDay(dateTo) });
+      }
+      if (dateFrom) return vDate >= startOfDay(dateFrom);
+      if (dateTo) return vDate <= endOfDay(dateTo);
+      return true;
+    });
+  }, [vouchers, dateFrom, dateTo]);
 
   const handleSign = async () => {
     if (!selectedVoucher || !user || !password) return;
@@ -190,11 +208,48 @@ export function PendingVouchers() {
   return (
     <Card className="shadow-lg border-0 ring-1 ring-border">
       <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-b-2 border-amber-200 dark:border-amber-800">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-            <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+              <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Chứng từ chờ ký duyệt {roleLabel}</CardTitle>
+              {filteredVouchers.length !== vouchers.length && (
+                <p className="text-xs text-muted-foreground mt-0.5">{filteredVouchers.length}/{vouchers.length} kết quả</p>
+              )}
+            </div>
           </div>
-          <CardTitle className="text-xl">Chứng từ chờ ký duyệt {roleLabel}</CardTitle>
+          <div className="flex items-center gap-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {dateFrom ? format(dateFrom, 'dd/MM/yyyy') : 'Từ ngày'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+            <span className="text-xs text-muted-foreground">→</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 text-xs gap-1", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {dateTo ? format(dateTo, 'dd/MM/yyyy') : 'Đến ngày'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+            {(dateFrom || dateTo) && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -202,10 +257,10 @@ export function PendingVouchers() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : vouchers.length === 0 ? (
+        ) : filteredVouchers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 mx-auto mb-2 text-green-400" />
-            <p>Không có chứng từ nào cần ký</p>
+            <p>{dateFrom || dateTo ? 'Không có chứng từ trong khoảng thời gian này' : 'Không có chứng từ nào cần ký'}</p>
           </div>
         ) : (
           <Table>
@@ -222,7 +277,7 @@ export function PendingVouchers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {vouchers.map(v => (
+              {filteredVouchers.map(v => (
                 <TableRow key={v.id}>
                   <TableCell>
                     <Badge variant="outline">{getVoucherLabel(v.voucher_type)}</Badge>
