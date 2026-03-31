@@ -155,7 +155,7 @@ export function PendingVouchers() {
     setSigning(false);
   };
 
-  const roleLabel = hasRole('lanh_dao') ? '(Lãnh đạo)' : hasRole('ke_toan') ? '(Kế toán)' : '';
+  const roleLabel = hasRole('lanh_dao') ? '(Lãnh đạo)' : hasRole('ke_toan') ? '(Kế toán)' : hasRole('phu_trach_dia_ban') ? '(Phụ trách địa bàn)' : '';
 
   return (
     <Card className="shadow-lg border-0 ring-1 ring-border">
