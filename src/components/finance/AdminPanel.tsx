@@ -299,17 +299,27 @@ export function AdminPanel() {
               </div>
               {newRole === 'phu_trach_dia_ban' && (
                 <div className="space-y-2">
-                  <Label>Địa bàn phụ trách</Label>
-                  <Select value={newAssignedArea} onValueChange={setNewAssignedArea}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn địa bàn..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {orgSettings.unionGroups.map(g => (
-                        <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Địa bàn phụ trách (chọn nhiều)</Label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                    {orgSettings.areaRepresentatives.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Chưa có địa bàn nào. Vui lòng thêm địa bàn trong Cài đặt.</p>
+                    ) : (
+                      orgSettings.areaRepresentatives.map(area => (
+                        <div key={area.areaName} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`new-area-${area.areaName}`}
+                            checked={newAssignedAreas.includes(area.areaName)}
+                            onCheckedChange={(checked) => {
+                              setNewAssignedAreas(prev =>
+                                checked ? [...prev, area.areaName] : prev.filter(a => a !== area.areaName)
+                              );
+                            }}
+                          />
+                          <label htmlFor={`new-area-${area.areaName}`} className="text-sm cursor-pointer">{area.areaName}</label>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
               <Button onClick={handleCreateUser} disabled={creating} className="w-full">
