@@ -192,7 +192,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                       <TableHead className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider pr-4">Số tiền</TableHead>
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Chữ ký</TableHead>}
                       {isVoucher && <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ký duyệt</TableHead>}
-                      <TableHead className="w-[100px]"></TableHead>
+                      <TableHead className="w-[120px] text-xs font-semibold text-muted-foreground uppercase tracking-wider">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
