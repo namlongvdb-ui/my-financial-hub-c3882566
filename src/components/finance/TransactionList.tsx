@@ -341,10 +341,29 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
           <PrintVoucher type={type} data={previewTx} />
         )}
         {previewTx && type === 'tham-hoi' && (
-          <PrintVisitVoucher data={previewTx} />
+          <PrintVisitVoucher data={{
+            date: previewTx.date,
+            visitorDepartment: previewTx.department,
+            recipientName: previewTx.recipientName || previewTx.personName,
+            reason: previewTx.reason || previewTx.description,
+            amount: previewTx.amount,
+            unionGroupName: previewTx.department,
+          }} />
         )}
         {previewTx && type === 'de-nghi' && (
-          <PrintPaymentRequest data={previewTx} />
+          <PrintPaymentRequest data={{
+            date: previewTx.date,
+            requestNo: previewTx.voucherNo,
+            requesterName: previewTx.personName,
+            department: previewTx.department,
+            content: previewTx.description,
+            amount: previewTx.amount,
+            times: previewTx.times || '',
+            bankAccount: previewTx.bankAccount || '',
+            bankAccountName: previewTx.bankAccountName || '',
+            bankName: previewTx.bankName || '',
+            attachments: String(previewTx.attachments || 0),
+          }} />
         )}
         <div className="flex justify-end mt-4">
           <Button onClick={() => { window.print(); }} variant="outline" size="sm">
