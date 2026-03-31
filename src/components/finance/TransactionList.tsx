@@ -46,6 +46,8 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const [sigRefreshKey, setSigRefreshKey] = useState(0);
   const [approvedVoucherIds, setApprovedVoucherIds] = useState<Set<string>>(new Set());
   const [previewTx, setPreviewTx] = useState<Transaction | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const { user } = useAuth();
 
   const isVoucher = type === 'thu' || type === 'chi';
@@ -70,10 +72,9 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const isApproved = (voucherNo: string) => approvedVoucherIds.has(voucherNo);
 
   const canModify = (tx: Transaction) => {
-    // Only creator can edit/delete, and only when not signed
     if (isApproved(tx.voucherNo)) return false;
     if (!user) return false;
-    if (!tx.createdBy) return true; // legacy data without createdBy
+    if (!tx.createdBy) return true;
     return tx.createdBy === user.id;
   };
 
@@ -82,16 +83,34 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   }, [type, refreshKey]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return transactions;
-    const q = search.toLowerCase();
-    return transactions.filter(t =>
-      t.voucherNo.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q) ||
-      t.personName.toLowerCase().includes(q) ||
-      t.department.toLowerCase().includes(q) ||
-      t.amount.toString().includes(q)
-    );
-  }, [transactions, search]);
+    let result = transactions;
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      result = result.filter(t => {
+        const txDate = new Date(t.date);
+        if (dateFrom && dateTo) {
+          return isWithinInterval(txDate, { start: startOfDay(dateFrom), end: endOfDay(dateTo) });
+        }
+        if (dateFrom) return txDate >= startOfDay(dateFrom);
+        if (dateTo) return txDate <= endOfDay(dateTo);
+        return true;
+      });
+    }
+
+    // Text search filter
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(t =>
+        t.voucherNo.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.personName.toLowerCase().includes(q) ||
+        t.department.toLowerCase().includes(q) ||
+        t.amount.toString().includes(q)
+      );
+    }
+    return result;
+  }, [transactions, search, dateFrom, dateTo]);
 
   const totalAmount = useMemo(() => filtered.reduce((s, t) => s + t.amount, 0), [filtered]);
 
