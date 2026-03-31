@@ -57,9 +57,15 @@ export function PendingVouchers() {
     for (const v of pendingData) {
       const step = await getSigningStep(v.voucher_id);
 
-      // Lãnh đạo sees all pending vouchers
-      if (isLeader && step === 'pending') {
-        filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
+      if (step === 'pending') {
+        // Phụ trách địa bàn chỉ thấy phiếu thăm hỏi
+        if (isAreaRep && !hasRole('lanh_dao') && v.voucher_type !== 'tham-hoi') continue;
+        // Kế toán không thấy phiếu thăm hỏi
+        if (isAccountant && !hasRole('lanh_dao') && v.voucher_type === 'tham-hoi') continue;
+        
+        if (isSignerRole) {
+          filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
+        }
       }
     }
 
