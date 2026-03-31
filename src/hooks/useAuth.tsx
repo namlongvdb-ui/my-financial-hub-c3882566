@@ -10,7 +10,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   roles: AppRole[];
-  profile: { full_name: string; email: string | null; username: string | null } | null;
+  profile: { full_name: string; email: string | null; username: string | null; assigned_area: string | null } | null;
   isAdmin: boolean;
   hasRole: (role: AppRole) => boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
