@@ -257,10 +257,10 @@ export function PendingVouchers() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : vouchers.length === 0 ? (
+        ) : filteredVouchers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 mx-auto mb-2 text-green-400" />
-            <p>Không có chứng từ nào cần ký</p>
+            <p>{dateFrom || dateTo ? 'Không có chứng từ trong khoảng thời gian này' : 'Không có chứng từ nào cần ký'}</p>
           </div>
         ) : (
           <Table>
