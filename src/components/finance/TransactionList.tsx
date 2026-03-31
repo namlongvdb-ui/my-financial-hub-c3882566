@@ -198,11 +198,12 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                   <TableBody>
                     {filtered.map((tx) => {
                       const locked = isApproved(tx.voucherNo);
+                      const editable = canModify(tx);
                       return (
                         <TableRow
                           key={tx.id}
-                          className={`group transition-colors border-b border-border/50 last:border-b-0 ${locked ? 'cursor-default' : 'cursor-pointer hover:bg-primary/[0.03]'}`}
-                          onClick={() => !locked && handleEdit(tx)}
+                          className={`group transition-colors border-b border-border/50 last:border-b-0 ${editable ? 'cursor-pointer hover:bg-primary/[0.03]' : 'cursor-default'}`}
+                          onClick={() => editable && handleEdit(tx)}
                         >
                           <TableCell className="pl-6">
                             <div className="flex items-center gap-1.5">
