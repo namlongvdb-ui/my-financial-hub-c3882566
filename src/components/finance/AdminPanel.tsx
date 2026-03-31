@@ -353,6 +353,15 @@ export function AdminPanel() {
                       </div>
                     </TableCell>
                     <TableCell>
+                      {u.assigned_area ? (
+                        <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+                          {u.assigned_area}
+                        </Badge>
+                      ) : u.roles.includes('phu_trach_dia_ban') ? (
+                        <span className="text-xs text-muted-foreground">Chưa gán</span>
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
                       {u.has_signature ? (
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           <Key className="w-3 h-3 mr-1" /> Đã có
