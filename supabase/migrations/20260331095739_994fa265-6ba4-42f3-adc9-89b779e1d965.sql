@@ -1,0 +1,1 @@
+CREATE POLICY "Admins can delete signatures" ON public.digital_signatures FOR DELETE TO authenticated USING (has_role(auth.uid(), 'admin'::app_role));

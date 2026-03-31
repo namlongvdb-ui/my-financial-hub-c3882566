@@ -1,0 +1,1 @@
+ALTER TABLE public.digital_signatures ADD CONSTRAINT digital_signatures_user_id_key UNIQUE (user_id);
