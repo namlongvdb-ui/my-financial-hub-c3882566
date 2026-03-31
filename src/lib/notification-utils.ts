@@ -44,13 +44,20 @@ export async function notifyFirstSigners(
   voucherId: string,
   voucherType: string,
   voucherLabel: string,
-  creatorName: string
+  creatorName: string,
+  areaName?: string
 ) {
   let signerIds: string[] = [];
 
   if (voucherType === 'tham-hoi') {
-    // Phiếu thăm hỏi: thông báo phụ trách địa bàn trước
-    signerIds = await getUserIdsByRole('phu_trach_dia_ban');
+    // Phiếu thăm hỏi: chỉ thông báo phụ trách của đúng địa bàn đó
+    if (areaName) {
+      signerIds = await getAreaRepsByArea(areaName);
+    }
+    // Fallback: nếu không tìm được phụ trách cho địa bàn cụ thể, thông báo tất cả
+    if (signerIds.length === 0) {
+      signerIds = await getUserIdsByRole('phu_trach_dia_ban');
+    }
   } else {
     // Thu/chi/đề nghị: thông báo kế toán trước
     signerIds = await getUserIdsByRole('ke_toan');
