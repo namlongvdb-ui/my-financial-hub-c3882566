@@ -11,6 +11,7 @@ export interface Transaction {
   approver: string;
   attachments: number;
   createdAt: string;
+  createdBy?: string; // user ID of creator
   // Extra fields for tham-hoi
   recipientName?: string;
   reason?: string;

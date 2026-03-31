@@ -91,6 +91,7 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
         attachments: 0,
         recipientName: form.recipientName,
         reason: form.reason,
+        createdBy: user?.id,
       };
       addTransaction(txData);
       

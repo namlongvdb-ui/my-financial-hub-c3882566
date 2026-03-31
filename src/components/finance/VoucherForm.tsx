@@ -164,6 +164,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
         accountCode: form.accountCode,
         approver: form.approver,
         attachments: form.attachments,
+        createdBy: user?.id,
       };
       addTransaction(txData);
       

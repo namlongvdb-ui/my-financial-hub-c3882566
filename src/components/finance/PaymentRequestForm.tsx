@@ -106,6 +106,7 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
         bankAccountName: form.bankAccountName,
         bankName: form.bankName,
         times: form.times,
+        createdBy: user?.id,
       };
       addTransaction(txData);
       
