@@ -6,12 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { getTransactions, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock } from 'lucide-react';
+import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoucherSignatureStatus, SignVoucherButton } from './VoucherSignature';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { PrintVoucher } from './PrintVoucher';
+import { PrintVisitVoucher } from './PrintVisitVoucher';
+import { PrintPaymentRequest } from './PrintPaymentRequest';
 
 interface TransactionListProps {
   type: 'thu' | 'chi' | 'tham-hoi' | 'de-nghi';
