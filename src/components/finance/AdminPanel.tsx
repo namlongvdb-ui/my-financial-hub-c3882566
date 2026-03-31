@@ -110,8 +110,14 @@ export function AdminPanel() {
 
   useEffect(() => { fetchUsers(); }, []);
 
+  const orgSettings = getOrgSettings();
+
   const handleCreateUser = async () => {
     if (!newUsername || !newPassword || !newFullName || !newRole) return;
+    if (newRole === 'phu_trach_dia_ban' && !newAssignedArea) {
+      toast({ title: 'Lỗi', description: 'Vui lòng chọn địa bàn phụ trách', variant: 'destructive' });
+      return;
+    }
     setCreating(true);
 
     try {
@@ -122,12 +128,20 @@ export function AdminPanel() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      // Update assigned_area for phu_trach_dia_ban
+      if (newRole === 'phu_trach_dia_ban' && newAssignedArea && data?.user?.id) {
+        await supabase.from('profiles')
+          .update({ assigned_area: newAssignedArea })
+          .eq('user_id', data.user.id);
+      }
+
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
       setNewUsername('');
       setNewPassword('');
       setNewFullName('');
       setNewRole('nguoi_lap');
+      setNewAssignedArea('');
       fetchUsers();
     } catch (err: any) {
       toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
