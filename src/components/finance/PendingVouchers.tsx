@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
-import { getVoucherLabel, notifyCreator, notifyLeader, getUserIdsByRole, getSigningStep } from '@/lib/notification-utils';
+import { getVoucherLabel, notifyLeaderAfterFirstSign, notifyCreatorToprint, getSigningStep } from '@/lib/notification-utils';
 import { toast } from 'sonner';
 import { PenTool, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -23,6 +23,7 @@ interface PendingVoucher {
   status: string;
   created_at: string;
   creator_name?: string;
+  signing_step?: string;
 }
 
 export function PendingVouchers() {
@@ -34,39 +35,44 @@ export function PendingVouchers() {
   const [password, setPassword] = useState('');
   const [signing, setSigning] = useState(false);
 
-  const isSignerRole = hasRole('lanh_dao') || hasRole('ke_toan') || hasRole('phu_trach_dia_ban');
-  const isAreaRep = hasRole('phu_trach_dia_ban');
+  const isLeader = hasRole('lanh_dao');
   const isAccountant = hasRole('ke_toan');
+  const isAreaRep = hasRole('phu_trach_dia_ban');
+  const isSignerRole = isLeader || isAccountant || isAreaRep;
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
     if (!user) { setLoading(false); return; }
 
-    // Get all pending vouchers
     const { data: pendingData } = await supabase
       .from('pending_vouchers')
       .select('*')
-      .eq('status', 'pending')
+      .in('status', ['pending', 'partially_signed'])
       .order('created_at', { ascending: false });
 
     if (!pendingData) { setLoading(false); return; }
 
-    // For each voucher, determine signing step and filter based on role
     const filteredVouchers: PendingVoucher[] = [];
 
     for (const v of pendingData) {
-      const step = await getSigningStep(v.voucher_id);
+      const step = await getSigningStep(v.voucher_id, v.voucher_type);
+
+      if (step === 'fully_signed') continue;
 
       if (step === 'pending') {
-        // Phụ trách địa bàn chỉ thấy phiếu thăm hỏi
-        if (isAreaRep && !hasRole('lanh_dao') && v.voucher_type !== 'tham-hoi') continue;
-        // Kế toán không thấy phiếu thăm hỏi
-        if (isAccountant && !hasRole('lanh_dao') && v.voucher_type === 'tham-hoi') continue;
-        
-        if (isSignerRole) {
-          filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any });
+        // Bước 1: chờ kế toán (thu/chi/đề nghị) hoặc phụ trách địa bàn (thăm hỏi)
+        if (v.voucher_type === 'tham-hoi') {
+          if (!isAreaRep) continue; // chỉ phụ trách địa bàn thấy
+        } else {
+          if (!isAccountant) continue; // chỉ kế toán thấy
         }
+        // Lãnh đạo chưa thấy ở bước này (trừ khi cũng có role kế toán/phụ trách)
+      } else if (step === 'first_signed') {
+        // Bước 2: chờ lãnh đạo ký
+        if (!isLeader) continue; // chỉ lãnh đạo thấy
       }
+
+      filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any, signing_step: step });
     }
 
     // Get creator names
@@ -85,7 +91,7 @@ export function PendingVouchers() {
 
     setVouchers(filteredVouchers);
     setLoading(false);
-  }, [user, isSignerRole, isAreaRep, isAccountant]);
+  }, [user, isLeader, isAccountant, isAreaRep]);
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
@@ -94,7 +100,6 @@ export function PendingVouchers() {
     setSigning(true);
 
     try {
-      // Try local key first, then server key decrypted with password
       let privateKey = getPrivateKey(user.id);
       if (!privateKey) {
         privateKey = await getServerPrivateKey(user.id, password);
@@ -128,21 +133,35 @@ export function PendingVouchers() {
       if (error) throw error;
 
       const signerName = profile?.full_name || 'Người ký';
+      const voucherLabel = getVoucherLabel(selectedVoucher.voucher_type);
 
-      if (isSignerRole) {
-        // Lãnh đạo ký xong → đánh dấu hoàn thành + thông báo người lập
+      if (isLeader && selectedVoucher.signing_step === 'first_signed') {
+        // Lãnh đạo ký xong (bước 2) → hoàn tất, thông báo người lập in chứng từ
         await supabase.from('pending_vouchers')
           .update({ status: 'signed', signed_at: new Date().toISOString() })
           .eq('id', selectedVoucher.id);
 
-        await notifyCreator(
+        await notifyCreatorToprint(
           selectedVoucher.created_by,
           selectedVoucher.voucher_id,
           selectedVoucher.voucher_type,
-          getVoucherLabel(selectedVoucher.voucher_type),
+          voucherLabel,
           signerName
         );
-        toast.success(`Đã ký duyệt hoàn tất. Người lập đã được thông báo.`);
+        toast.success('Đã ký duyệt hoàn tất. Người lập đã được thông báo để in chứng từ.');
+      } else {
+        // Kế toán / phụ trách ký xong (bước 1) → chuyển sang partially_signed, thông báo lãnh đạo
+        await supabase.from('pending_vouchers')
+          .update({ status: 'partially_signed' })
+          .eq('id', selectedVoucher.id);
+
+        await notifyLeaderAfterFirstSign(
+          selectedVoucher.voucher_id,
+          selectedVoucher.voucher_type,
+          voucherLabel,
+          signerName
+        );
+        toast.success('Đã ký duyệt. Lãnh đạo đã được thông báo để ký tiếp.');
       }
 
       setSignDialogOpen(false);
@@ -155,7 +174,7 @@ export function PendingVouchers() {
     setSigning(false);
   };
 
-  const roleLabel = hasRole('lanh_dao') ? '(Lãnh đạo)' : hasRole('ke_toan') ? '(Kế toán)' : hasRole('phu_trach_dia_ban') ? '(Phụ trách địa bàn)' : '';
+  const roleLabel = isLeader ? '(Lãnh đạo)' : isAccountant ? '(Kế toán)' : isAreaRep ? '(Phụ trách địa bàn)' : '';
 
   return (
     <Card className="shadow-lg border-0 ring-1 ring-border">
@@ -187,6 +206,7 @@ export function PendingVouchers() {
                 <TableHead>Nội dung</TableHead>
                 <TableHead className="text-right">Số tiền</TableHead>
                 <TableHead>Người tạo</TableHead>
+                <TableHead>Trạng thái</TableHead>
                 <TableHead className="text-center">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
@@ -203,6 +223,11 @@ export function PendingVouchers() {
                     {(v.voucher_data?.amount || 0).toLocaleString('vi-VN')}đ
                   </TableCell>
                   <TableCell>{v.creator_name}</TableCell>
+                  <TableCell>
+                    <Badge variant={v.signing_step === 'first_signed' ? 'default' : 'secondary'} className="text-xs">
+                      {v.signing_step === 'first_signed' ? 'Chờ lãnh đạo ký' : 'Chờ duyệt'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-center">
                     <Button
                       size="sm"
