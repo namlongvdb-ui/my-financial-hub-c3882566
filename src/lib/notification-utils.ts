@@ -27,7 +27,7 @@ export async function getAreaRepsByArea(areaName: string): Promise<string[]> {
     p.assigned_area && areaName.includes(p.assigned_area)
   );
 
-  return profiles ? profiles.map(p => p.user_id) : [];
+  return filtered.map(p => p.user_id);
 }
 
 export async function getSignerUserIds(): Promise<string[]> {
