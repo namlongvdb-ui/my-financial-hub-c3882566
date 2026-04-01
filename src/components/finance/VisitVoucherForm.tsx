@@ -120,7 +120,7 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
                 <X className="h-4 w-4 mr-1" /> Hủy sửa
               </Button>
             )}
-            <Button type="button" variant="outline" size="sm" onClick={() => window.print()} className="bg-background/80 backdrop-blur-sm">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowPreview(true)} className="bg-background/80 backdrop-blur-sm">
               <Printer className="h-4 w-4 mr-1" /> In phiếu
             </Button>
           </div>
