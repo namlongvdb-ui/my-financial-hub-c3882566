@@ -109,6 +109,21 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
     onSaved?.();
   };
 
+  if (showPreview) {
+    return (
+      <PrintPreview onBack={() => setShowPreview(false)}>
+        <PrintVisitVoucher data={{
+          date: form.date,
+          visitorDepartment: form.visitorDepartment,
+          recipientName: form.recipientName,
+          reason: form.reason,
+          amount,
+          unionGroupName: form.unionGroupName,
+        }} />
+      </PrintPreview>
+    );
+  }
+
   return (
     <>
       <Card className="max-w-3xl mx-auto shadow-lg no-print overflow-hidden border-0 ring-1 ring-border">
