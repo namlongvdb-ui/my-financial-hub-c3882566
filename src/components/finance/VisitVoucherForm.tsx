@@ -35,6 +35,7 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
   const settings = getOrgSettings();
   const [form, setForm] = useState(() => emptyForm(settings));
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const amount = parseInt(form.amount) || 0;
 
