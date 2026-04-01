@@ -117,6 +117,16 @@ All colors MUST be HSL.
     visibility: visible !important;
   }
 
+  /* Show print-preview-container and its print-voucher */
+  .print-preview-container,
+  .print-preview-container * {
+    visibility: visible !important;
+  }
+
+  .print-preview-container .no-print {
+    display: none !important;
+  }
+
   .print-voucher,
   .print-voucher * {
     visibility: visible !important;
