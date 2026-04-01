@@ -124,6 +124,26 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
     onSaved?.();
   };
 
+  if (showPreview) {
+    return (
+      <PrintPreview onBack={() => setShowPreview(false)}>
+        <PrintPaymentRequest data={{
+          date: form.date,
+          requestNo: form.requestNo,
+          requesterName: form.requesterName,
+          department: form.department,
+          content: form.content,
+          amount,
+          times: form.times,
+          bankAccount: form.bankAccount,
+          bankAccountName: form.bankAccountName,
+          bankName: form.bankName,
+          attachments: form.attachments,
+        }} />
+      </PrintPreview>
+    );
+  }
+
   return (
     <>
       <Card className="max-w-3xl mx-auto shadow-lg no-print overflow-hidden border-0 ring-1 ring-border">
