@@ -375,7 +375,7 @@ export function StaffList() {
                 ] as const).map(([key, label]) => (
                   <div key={key}>
                     <Label className="text-xs text-muted-foreground">{label}</Label>
-                    <Input type="number" value={settings[key]} onChange={e => setSettings(prev => ({ ...prev, [key]: Number(e.target.value) || 0 }))} />
+                    <Input type="number" value={localSettings[key]} onChange={e => setLocalSettings(prev => ({ ...prev, [key]: Number(e.target.value) || 0 }))} />
                   </div>
                 ))}
                 <Button onClick={handleSaveSettings} className="w-full"><Save className="h-4 w-4 mr-1" /> Lưu</Button>
