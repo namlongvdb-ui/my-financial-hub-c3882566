@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
+import MigrateData from "./pages/MigrateData.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/migrate" element={<MigrateData />} />
       <Route path="/index" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
