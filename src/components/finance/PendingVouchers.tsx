@@ -159,9 +159,7 @@ export function PendingVouchers() {
 
       if (isLeader && selectedVoucher.signing_step === 'first_signed') {
         // Lãnh đạo ký xong (bước 2) → hoàn tất, thông báo người lập in chứng từ
-        await supabase.from('pending_vouchers')
-          .update({ status: 'signed', signed_at: new Date().toISOString() })
-          .eq('id', selectedVoucher.id);
+        await pendingVouchersApi.update(selectedVoucher.id, { status: 'signed', signed_at: new Date().toISOString() });
 
         await notifyCreatorToprint(
           selectedVoucher.created_by,
