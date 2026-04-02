@@ -73,8 +73,12 @@ function PositionCombobox({ value, onChange }: { value: string; onChange: (v: st
 }
 
 export function StaffList() {
-  const [list, setList] = useState<StaffMember[]>([]);
-  const [settings, setSettings] = useState<StaffSettings>(getStaffSettings());
+  const { list, refetch: reloadList, addStaff, updateStaff, deleteStaff } = useStaffList();
+  const { settings, saveSettings: saveStaffSettings } = useStaffSettings();
+  const [localSettings, setLocalSettings] = useState<StaffSettings>(settings);
+  const { history: transferHistoryData, addTransfer: addTransferRecord } = useTransferHistory();
+  const { settings: orgSettings } = useOrgSettings();
+
   const [form, setForm] = useState(emptyStaff);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,32 +100,30 @@ export function StaffList() {
   const [bulkTransferType, setBulkTransferType] = useState<'move' | 'out'>('move');
   const printRef = useRef<HTMLDivElement>(null);
 
-  const orgSettings = getOrgSettings();
   const unionGroupNames = orgSettings.unionGroups.map(g => g.name);
 
-  useEffect(() => { setList(getStaffList()); }, []);
-  const reload = () => setList(getStaffList());
+  // Sync local settings when loaded
+  useEffect(() => { setLocalSettings(settings); }, [settings]);
 
-  const handleSaveSettings = () => {
-    saveStaffSettings(settings);
+  const handleSaveSettings = async () => {
+    await saveStaffSettings(localSettings);
     toast.success('Đã lưu thông số lương chung');
     setSettingsOpen(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.fullName.trim()) { toast.error('Vui lòng nhập họ tên'); return; }
     if (!form.department.trim()) { toast.error('Vui lòng chọn tổ công đoàn'); return; }
     if (editingId) {
-      updateStaff(editingId, form);
+      await updateStaff(editingId, form);
       toast.success('Đã cập nhật đoàn viên');
     } else {
-      addStaff(form);
+      await addStaff(form);
       toast.success('Đã thêm đoàn viên');
     }
     setForm(emptyStaff);
     setEditingId(null);
     setDialogOpen(false);
-    reload();
   };
 
   const handleEdit = (s: StaffMember) => {
@@ -130,10 +132,9 @@ export function StaffList() {
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteStaff(id);
+  const handleDelete = async (id: string) => {
+    await deleteStaff(id);
     toast.success('Đã xóa đoàn viên');
-    reload();
   };
 
   const handleOpenTransfer = (s: StaffMember, type: 'move' | 'out') => {
@@ -143,7 +144,7 @@ export function StaffList() {
     setTransferDialogOpen(true);
   };
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (!transferTarget) return;
     if (transferType === 'move' && !transferDept) {
       toast.error('Vui lòng chọn tổ công đoàn đích');
@@ -157,26 +158,25 @@ export function StaffList() {
       type: transferType,
       date: new Date().toISOString().split('T')[0],
     };
-    addTransferRecord(record);
+    await addTransferRecord(record);
 
     if (transferType === 'out') {
-      deleteStaff(transferTarget.id);
+      await deleteStaff(transferTarget.id);
       toast.success(`Đã chuyển ${transferTarget.fullName} ra khỏi ngành`);
     } else {
-      updateStaff(transferTarget.id, { department: transferDept });
+      await updateStaff(transferTarget.id, { department: transferDept });
       toast.success(`Đã chuyển ${transferTarget.fullName} sang ${transferDept}`);
     }
     setTransferDialogOpen(false);
     setTransferTarget(null);
-    reload();
   };
 
   const openHistory = () => {
-    setTransferHistory(getTransferHistory());
+    setTransferHistory(transferHistoryData);
     setHistoryOpen(true);
   };
 
-  const handleBulkTransfer = () => {
+  const handleBulkTransfer = async () => {
     if (!bulkTransferStaff) { toast.error('Vui lòng chọn đoàn viên'); return; }
     const staff = list.find(s => s.id === bulkTransferStaff);
     if (!staff) return;
@@ -189,18 +189,17 @@ export function StaffList() {
       type: bulkTransferType,
       date: new Date().toISOString().split('T')[0],
     };
-    addTransferRecord(record);
+    await addTransferRecord(record);
     if (bulkTransferType === 'out') {
-      deleteStaff(staff.id);
+      await deleteStaff(staff.id);
       toast.success(`Đã chuyển ${staff.fullName} ra khỏi ngành`);
     } else {
-      updateStaff(staff.id, { department: bulkTransferDept });
+      await updateStaff(staff.id, { department: bulkTransferDept });
       toast.success(`Đã chuyển ${staff.fullName} sang ${bulkTransferDept}`);
     }
     setBulkTransferOpen(false);
     setBulkTransferStaff('');
     setBulkTransferDept('');
-    reload();
   };
 
   // Group by department
