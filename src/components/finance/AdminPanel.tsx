@@ -153,11 +153,8 @@ export function AdminPanel() {
     if (!resetTarget || !resetPassword) return;
     setResetting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { user_id: resetTarget.user_id, new_password: resetPassword }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const { error } = await adminApi.resetPassword(resetTarget.user_id, resetPassword);
+      if (error) throw new Error(error.message);
       toast({ title: 'Thành công', description: `Đã đặt lại mật khẩu cho ${resetTarget.full_name}` });
       setResetDialogOpen(false);
       setResetPassword('');
