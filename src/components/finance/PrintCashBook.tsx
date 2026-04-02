@@ -1,32 +1,28 @@
-import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
+import { useOrgSettings, useTransactions, useYearData } from '@/hooks/useFinanceData';
 import { useMemo } from 'react';
 
-function formatCurrency(n: number) {
-  return n.toLocaleString('vi-VN');
-}
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('vi-VN');
-}
+function formatCurrency(n: number) { return n.toLocaleString('vi-VN'); }
+function formatDate(d: string) { return new Date(d).toLocaleDateString('vi-VN'); }
 
 export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
-  const settings = getOrgSettings();
+  const { settings } = useOrgSettings();
+  const { activeYear, getOpeningBalanceForYear } = useYearData(refreshKey);
+  const { transactions } = useTransactions(activeYear, undefined, refreshKey);
+
   const data = useMemo(() => {
-    const txs = getTransactions();
-    const opening = getOpeningBalance();
+    const txs = transactions.filter(tx => tx.type === 'thu' || tx.type === 'chi');
+    const opening = getOpeningBalanceForYear(activeYear);
     let balance = opening;
-    const rows = txs
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map(tx => {
-        const thu = tx.type === 'thu' ? tx.amount : 0;
-        const chi = tx.type === 'chi' ? tx.amount : 0;
-        balance = balance + thu - chi;
-        return { ...tx, thu, chi, balance };
-      });
+    const rows = txs.sort((a, b) => a.date.localeCompare(b.date)).map(tx => {
+      const thu = tx.type === 'thu' ? tx.amount : 0;
+      const chi = tx.type === 'chi' ? tx.amount : 0;
+      balance = balance + thu - chi;
+      return { ...tx, thu, chi, balance };
+    });
     const totalThu = rows.reduce((s, r) => s + r.thu, 0);
     const totalChi = rows.reduce((s, r) => s + r.chi, 0);
     return { rows, opening, totalThu, totalChi, closing: opening + totalThu - totalChi };
-  }, [refreshKey]);
+  }, [transactions, activeYear, getOpeningBalanceForYear]);
 
   const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '5px 8px', fontSize: '12px', verticalAlign: 'middle' };
   const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5', padding: '6px 8px' };
@@ -34,18 +30,14 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '13px', color: '#000', padding: '25px 35px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div style={{ textAlign: 'center', width: '60%' }}>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
-        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
-        </div>
+        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}></div>
       </div>
-
       <div style={{ height: '16px' }}></div>
-
       <h2 style={{ textAlign: 'center', fontSize: '22px', fontWeight: 'bold', margin: '12px 0 4px', letterSpacing: '1px' }}>SỔ QUỸ TIỀN MẶT</h2>
       <p style={{ textAlign: 'right', fontSize: '11px', margin: '0 0 10px' }}>ĐVT: đồng</p>
 
@@ -58,16 +50,12 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
             <th style={headerCellStyle} colSpan={2}>Số tiền</th>
             <th style={headerCellStyle} rowSpan={2}>Tồn</th>
           </tr>
-          <tr>
-            <th style={headerCellStyle}>Thu</th>
-            <th style={headerCellStyle}>Chi</th>
-          </tr>
+          <tr><th style={headerCellStyle}>Thu</th><th style={headerCellStyle}>Chi</th></tr>
         </thead>
         <tbody>
           <tr>
             <td style={cellStyle} colSpan={3}><b>Số dư đầu kỳ</b></td>
-            <td style={rightCell}></td>
-            <td style={rightCell}></td>
+            <td style={rightCell}></td><td style={rightCell}></td>
             <td style={{ ...rightCell, fontWeight: 'bold' }}>{formatCurrency(data.opening)}</td>
           </tr>
           {data.rows.map(row => (
@@ -88,17 +76,13 @@ export function PrintCashBook({ refreshKey }: { refreshKey?: number }) {
           </tr>
           <tr>
             <td style={cellStyle} colSpan={3}><b>Số dư cuối kỳ</b></td>
-            <td style={rightCell}></td>
-            <td style={rightCell}></td>
+            <td style={rightCell}></td><td style={rightCell}></td>
             <td style={{ ...rightCell, fontWeight: 'bold', fontSize: '14px' }}>{formatCurrency(data.closing)}</td>
           </tr>
         </tbody>
       </table>
 
-      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>
-        Ngày........ tháng........ năm........
-      </p>
-
+      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>Ngày........ tháng........ năm........</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '33%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Thủ Quỹ</p>

@@ -1,26 +1,16 @@
-import { getTransactions, getOrgSettings } from '@/lib/finance-store';
+import { useOrgSettings, useTransactions } from '@/hooks/useFinanceData';
 import { useMemo } from 'react';
 
-function formatCurrency(n: number) {
-  return n.toLocaleString('vi-VN');
-}
+function formatCurrency(n: number) { return n.toLocaleString('vi-VN'); }
+function formatDate(d: string) { return new Date(d).toLocaleDateString('vi-VN'); }
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('vi-VN');
-}
-
-const typeLabels: Record<string, string> = {
-  thu: 'PT',
-  chi: 'PC',
-  'tham-hoi': 'TH',
-  'de-nghi': 'DN',
-};
+const typeLabels: Record<string, string> = { thu: 'PT', chi: 'PC', 'tham-hoi': 'TH', 'de-nghi': 'DN' };
 
 export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
-  const settings = getOrgSettings();
-  const rows = useMemo(() => {
-    return getTransactions().sort((a, b) => a.date.localeCompare(b.date));
-  }, [refreshKey]);
+  const { settings } = useOrgSettings();
+  const { transactions } = useTransactions(undefined, undefined, refreshKey);
+
+  const rows = useMemo(() => transactions.sort((a, b) => a.date.localeCompare(b.date)), [transactions]);
 
   const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '4px 6px', fontSize: '11px', verticalAlign: 'middle' };
   const headerCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 'bold', textAlign: 'center', background: '#f5f5f5', padding: '5px 6px' };
@@ -29,32 +19,24 @@ export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div className="print-voucher" style={{ fontFamily: 'Times New Roman, serif', fontSize: '12px', color: '#000', padding: '20px 25px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
         <div style={{ textAlign: 'center', width: '60%' }}>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: 0 }}>{settings.orgName.toUpperCase()}</p>
           <p style={{ fontWeight: 'bold', fontSize: '13px', margin: '2px 0 0', textDecoration: 'underline' }}>{settings.orgSubName.toUpperCase()}</p>
         </div>
-        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}>
-        </div>
+        <div style={{ textAlign: 'right', width: '40%', fontSize: '12px' }}></div>
       </div>
-
       <div style={{ height: '16px' }}></div>
       <h2 style={{ textAlign: 'center', fontSize: '22px', fontWeight: 'bold', margin: '12px 0 16px', letterSpacing: '1px' }}>SỔ CHI TIẾT</h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={headerCellStyle}>Ngày CT</th>
-            <th style={headerCellStyle}>Số CT</th>
-            <th style={headerCellStyle}>Số tiền</th>
-            <th style={headerCellStyle}>Nội dung</th>
-            <th style={headerCellStyle}>Loại</th>
-            <th style={headerCellStyle}>Thu</th>
-            <th style={headerCellStyle}>Chi</th>
-            <th style={headerCellStyle}>TK Nợ</th>
-            <th style={headerCellStyle}>TK Có</th>
-            <th style={headerCellStyle}>Họ tên</th>
+            <th style={headerCellStyle}>Ngày CT</th><th style={headerCellStyle}>Số CT</th>
+            <th style={headerCellStyle}>Số tiền</th><th style={headerCellStyle}>Nội dung</th>
+            <th style={headerCellStyle}>Loại</th><th style={headerCellStyle}>Thu</th>
+            <th style={headerCellStyle}>Chi</th><th style={headerCellStyle}>TK Nợ</th>
+            <th style={headerCellStyle}>TK Có</th><th style={headerCellStyle}>Họ tên</th>
             <th style={headerCellStyle}>Đơn vị</th>
           </tr>
         </thead>
@@ -74,18 +56,11 @@ export function PrintDetailLedger({ refreshKey }: { refreshKey?: number }) {
               <td style={cellStyle}>{row.department}</td>
             </tr>
           ))}
-          {rows.length === 0 && (
-            <tr>
-              <td style={cellStyle} colSpan={11}>Chưa có dữ liệu</td>
-            </tr>
-          )}
+          {rows.length === 0 && (<tr><td style={cellStyle} colSpan={11}>Chưa có dữ liệu</td></tr>)}
         </tbody>
       </table>
 
-      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>
-        Ngày........ tháng........ năm........
-      </p>
-
+      <p style={{ textAlign: 'right', fontStyle: 'italic', margin: '18px 0 8px', fontSize: '13px' }}>Ngày........ tháng........ năm........</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', textAlign: 'center', fontSize: '13px' }}>
         <div style={{ width: '33%' }}>
           <p style={{ fontWeight: 'bold', margin: '0 0 4px' }}>Người lập</p>
