@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi, voucherSignaturesApi, profilesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { getVoucherLabel, notifyLeaderAfterFirstSign, notifyCreatorToprint, getSigningStep } from '@/lib/notification-utils';
