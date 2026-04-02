@@ -48,13 +48,10 @@ export function ApprovedVouchers() {
     if (!user) return;
     setLoading(true);
 
-    const { data } = await supabase
-      .from('pending_vouchers')
-      .select('*')
-      .in('status', ['signed', 'printed'])
-      .order('signed_at', { ascending: false });
+    const { data } = await pendingVouchersApi.getAll();
+    const filtered = (data || []).filter((v: any) => ['signed', 'printed'].includes(v.status));
 
-    setVouchers((data || []).map(v => ({ ...v, voucher_data: v.voucher_data as any })));
+    setVouchers(filtered.map((v: any) => ({ ...v, voucher_data: v.voucher_data as any })));
     setLoading(false);
   }, [user]);
 
