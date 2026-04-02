@@ -16,7 +16,7 @@ import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
 import { VoucherSignatureStatus, SignVoucherButton } from './VoucherSignature';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { PrintVoucher } from './PrintVoucher';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
@@ -54,14 +54,12 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
   // Fetch approved/signed voucher IDs to prevent editing
   const fetchApprovedIds = useCallback(async () => {
-    const { data } = await supabase
-      .from('pending_vouchers')
-      .select('voucher_id')
-      .eq('voucher_type', type)
-      .in('status', ['signed', 'printed']);
-    
+    const { data } = await pendingVouchersApi.getAll();
     if (data) {
-      setApprovedVoucherIds(new Set(data.map(v => v.voucher_id)));
+      const approved = data.filter((v: any) => 
+        v.voucher_type === type && ['signed', 'printed'].includes(v.status)
+      );
+      setApprovedVoucherIds(new Set(approved.map((v: any) => v.voucher_id)));
     }
   }, [type]);
 

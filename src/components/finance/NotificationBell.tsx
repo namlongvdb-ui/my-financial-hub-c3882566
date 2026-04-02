@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Bell } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { notificationsApi, pendingVouchersApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -40,33 +40,25 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
+    const { data } = await notificationsApi.getAll();
     
     if (!data) return;
 
     // Enrich notifications with current voucher status
     const voucherIds = [...new Set(
-      data.filter(n => n.related_voucher_id).map(n => n.related_voucher_id!)
+      data.filter((n: any) => n.related_voucher_id).map((n: any) => n.related_voucher_id!)
     )];
 
     let statusMap = new Map<string, string>();
     if (voucherIds.length > 0) {
-      const { data: vouchers } = await supabase
-        .from('pending_vouchers')
-        .select('voucher_id, status')
-        .in('voucher_id', voucherIds);
-      
-      if (vouchers) {
-        vouchers.forEach(v => statusMap.set(v.voucher_id, v.status));
+      const { data: allVouchers } = await pendingVouchersApi.getAll();
+      if (allVouchers) {
+        allVouchers.filter((v: any) => voucherIds.includes(v.voucher_id))
+          .forEach((v: any) => statusMap.set(v.voucher_id, v.status));
       }
     }
 
-    const enriched: Notification[] = data.map(n => ({
+    const enriched: Notification[] = data.map((n: any) => ({
       ...n,
       voucher_status: n.related_voucher_id
         ? statusMap.get(n.related_voucher_id) || 'unknown'
@@ -81,69 +73,18 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
 
     if (!user) return;
 
-    // Listen to new/changed notifications
-    const channel = supabase
-      .channel('notifications-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
-
-    // Listen to pending_vouchers status changes (signed, printed, etc.)
-    const voucherChannel = supabase
-      .channel('voucher-status-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'pending_vouchers',
-        },
-        () => fetchNotifications()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pending_vouchers',
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
-
-    // Listen to voucher_signatures changes (new signatures affect status)
-    const sigChannel = supabase
-      .channel('voucher-sigs-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'voucher_signatures',
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
+    // Poll for new notifications every 30 seconds (replaces realtime subscriptions)
+    const interval = setInterval(fetchNotifications, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(voucherChannel);
-      supabase.removeChannel(sigChannel);
+      clearInterval(interval);
     };
   }, [user, fetchNotifications]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const markAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    await notificationsApi.markRead(id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
@@ -151,7 +92,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
     if (!user) return;
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds);
+    await notificationsApi.markAllRead();
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { profilesApi, rolesApi, digitalSignaturesApi, adminApi } from '@/lib/api-client';
 import { getOrgSettings } from '@/lib/finance-store';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { generateRSAKeyPair, storePrivateKey, encryptPrivateKey } from '@/lib/crypto-utils';
 import { UserPlus, Key, Shield, Users, RotateCcw, Ban, Trash2, UserCheck, RefreshCw, MapPin } from 'lucide-react';
-import type { Database } from '@/integrations/supabase/types';
 
-type AppRole = Database['public']['Enums']['app_role'];
+type AppRole = 'admin' | 'lanh_dao' | 'nguoi_lap' | 'ke_toan' | 'phu_trach_dia_ban';
 
 interface UserWithRole {
   user_id: string;
@@ -79,14 +78,14 @@ export function AdminPanel() {
   const fetchUsers = async () => {
     setLoading(true);
     const [profilesRes, rolesRes, sigsRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name, username, assigned_area'),
-      supabase.from('user_roles').select('user_id, role'),
-      supabase.from('digital_signatures').select('user_id').eq('is_active', true),
+      profilesApi.getAll(),
+      rolesApi.getAll(),
+      digitalSignaturesApi.get(undefined, true),
     ]);
 
     if (profilesRes.data) {
       const userMap = new Map<string, UserWithRole>();
-      profilesRes.data.forEach(p => {
+      profilesRes.data.forEach((p: any) => {
         userMap.set(p.user_id, {
           user_id: p.user_id,
           full_name: p.full_name,
@@ -98,12 +97,12 @@ export function AdminPanel() {
         });
       });
 
-      rolesRes.data?.forEach(r => {
+      rolesRes.data?.forEach((r: any) => {
         const u = userMap.get(r.user_id);
         if (u) u.roles.push(r.role);
       });
 
-      sigsRes.data?.forEach(s => {
+      sigsRes.data?.forEach((s: any) => {
         const u = userMap.get(s.user_id);
         if (u) u.has_signature = true;
       });
@@ -126,19 +125,15 @@ export function AdminPanel() {
     setCreating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { username: newUsername, password: newPassword, full_name: newFullName, role: newRole }
+      const { data, error } = await adminApi.createUser({
+        username: newUsername,
+        password: newPassword,
+        fullName: newFullName,
+        role: newRole,
+        assignedArea: newRole === 'phu_trach_dia_ban' ? newAssignedAreas.join(',') : undefined,
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      // Update assigned_area for phu_trach_dia_ban (comma-separated)
-      if (newRole === 'phu_trach_dia_ban' && newAssignedAreas.length > 0 && data?.user?.id) {
-        await supabase.from('profiles')
-          .update({ assigned_area: newAssignedAreas.join(',') })
-          .eq('user_id', data.user.id);
-      }
+      if (error) throw new Error(error.message);
 
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
@@ -158,11 +153,8 @@ export function AdminPanel() {
     if (!resetTarget || !resetPassword) return;
     setResetting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { user_id: resetTarget.user_id, new_password: resetPassword }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const { error } = await adminApi.resetPassword(resetTarget.user_id, resetPassword);
+      if (error) throw new Error(error.message);
       toast({ title: 'Thành công', description: `Đã đặt lại mật khẩu cho ${resetTarget.full_name}` });
       setResetDialogOpen(false);
       setResetPassword('');
@@ -176,11 +168,12 @@ export function AdminPanel() {
   const handleManageUser = async (targetUserId: string, targetName: string, action: 'disable' | 'enable' | 'delete') => {
     setManaging(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
-        body: { user_id: targetUserId, action }
+      const { error } = await adminApi.manageUser({
+        userId: targetUserId,
+        action,
+        isActive: action === 'enable' ? true : action === 'disable' ? false : undefined,
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(error.message);
       const msgs: Record<string, string> = { disable: 'Đã vô hiệu hoá', enable: 'Đã kích hoạt lại', delete: 'Đã xoá' };
       toast({ title: 'Thành công', description: `${msgs[action]} tài khoản ${targetName}` });
       setDeleteTarget(null);
@@ -195,11 +188,12 @@ export function AdminPanel() {
     if (!roleTarget || !selectedRole) return;
     setChangingRole(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
-        body: { user_id: roleTarget.user_id, action: 'change_role', new_role: selectedRole }
+      const { error } = await adminApi.manageUser({
+        userId: roleTarget.user_id,
+        action: 'update',
+        role: selectedRole,
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(error.message);
       toast({ title: 'Thành công', description: `Đã đổi vai trò của ${roleTarget.full_name} thành ${ROLE_LABELS[selectedRole]}` });
       setRoleDialogOpen(false);
       setRoleTarget(null);
@@ -215,31 +209,30 @@ export function AdminPanel() {
     setGeneratingSignature(true);
     try {
       const { publicKey, privateKey } = await generateRSAKeyPair();
-      
-      // Encrypt private key with the provided password
       const encryptedPrivateKey = await encryptPrivateKey(privateKey, signaturePassword);
 
-      // Remove existing keys for this user first
-      await supabase.from('digital_signatures')
-        .delete()
-        .eq('user_id', signatureTarget.user_id);
+      // Delete existing keys
+      const { data: existingKeys } = await digitalSignaturesApi.get(signatureTarget.user_id);
+      if (existingKeys) {
+        for (const k of existingKeys) {
+          await digitalSignaturesApi.delete(k.id);
+        }
+      }
 
-      const { error } = await supabase.from('digital_signatures').insert({
-        user_id: signatureTarget.user_id,
-        public_key: publicKey,
-        created_by: user!.id,
-        is_active: true,
-        encrypted_private_key: encryptedPrivateKey,
+      const { error } = await digitalSignaturesApi.create({
+        userId: signatureTarget.user_id,
+        publicKey,
+        encryptedPrivateKey,
+        createdBy: user!.id,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
-      // Also store locally for convenience on this device
       storePrivateKey(signatureTarget.user_id, privateKey);
 
       toast({
         title: 'Đã tạo chữ ký số',
-        description: `Cặp khóa RSA đã được tạo cho ${signatureTarget.full_name}. Khóa bí mật đã được mã hóa và lưu trên server. Người dùng có thể ký trên mọi thiết bị bằng mật khẩu ký.`,
+        description: `Cặp khóa RSA đã được tạo cho ${signatureTarget.full_name}.`,
       });
 
       setSignatureDialogOpen(false);
@@ -256,9 +249,11 @@ export function AdminPanel() {
     if (!areaTarget) return;
     setSavingAreas(true);
     try {
-      await supabase.from('profiles')
-        .update({ assigned_area: editAreas.length > 0 ? editAreas.join(',') : null })
-        .eq('user_id', areaTarget.user_id);
+      await adminApi.manageUser({
+        userId: areaTarget.user_id,
+        action: 'update',
+        assignedArea: editAreas.length > 0 ? editAreas.join(',') : undefined,
+      });
       toast({ title: 'Thành công', description: `Đã cập nhật địa bàn cho ${areaTarget.full_name}` });
       setAreaDialogOpen(false);
       setAreaTarget(null);

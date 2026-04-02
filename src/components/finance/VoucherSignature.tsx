@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { voucherSignaturesApi, profilesApi, rolesApi, digitalSignaturesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, verifySignature, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { Transaction } from '@/types/finance';
@@ -15,14 +15,14 @@ interface SignatureInfo {
   signer_id: string;
   signer_name: string;
   signed_at: string;
-  is_valid: boolean | null; // null = not verified yet
+  is_valid: boolean | null;
   role: string;
 }
 
 interface VoucherSignatureProps {
   transaction: Transaction;
   voucherType: 'thu' | 'chi' | 'tham-hoi' | 'de-nghi';
-  compact?: boolean; // for table row display
+  compact?: boolean;
 }
 
 function buildVoucherDataString(tx: Transaction): string {
@@ -46,23 +46,18 @@ export function VoucherSignatureStatus({ transaction, voucherType }: VoucherSign
 
   const fetchSignatures = async () => {
     setLoading(true);
-    const { data: sigs } = await supabase
-      .from('voucher_signatures')
-      .select('signer_id, signed_at')
-      .eq('voucher_id', transaction.voucherNo)
-      .eq('voucher_type', voucherType);
+    const { data: sigs } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType);
 
     if (sigs && sigs.length > 0) {
-      // Get signer profiles and roles
-      const signerIds = sigs.map(s => s.signer_id);
+      const signerIds = sigs.map((s: any) => s.signer_id);
       const [profilesRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('user_id, full_name').in('user_id', signerIds),
-        supabase.from('user_roles').select('user_id, role').in('user_id', signerIds),
+        profilesApi.getAll(),
+        rolesApi.getAll(),
       ]);
 
-      const infos: SignatureInfo[] = sigs.map(s => {
-        const profile = profilesRes.data?.find(p => p.user_id === s.signer_id);
-        const role = rolesRes.data?.find(r => r.user_id === s.signer_id);
+      const infos: SignatureInfo[] = sigs.map((s: any) => {
+        const profile = profilesRes.data?.find((p: any) => p.user_id === s.signer_id);
+        const role = rolesRes.data?.find((r: any) => r.user_id === s.signer_id);
         return {
           signer_id: s.signer_id,
           signer_name: profile?.full_name || 'Unknown',
@@ -114,9 +109,6 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
   const [verifying, setVerifying] = useState(false);
   const [signPassword, setSignPassword] = useState('');
 
-  // Signing permissions depend on voucher type:
-  // - tham-hoi: only lanh_dao or phu_trach_dia_ban can sign (not ke_toan)
-  // - thu/chi/de-nghi: only lanh_dao and ke_toan can sign (not phu_trach_dia_ban)
   const canSign = voucherType === 'tham-hoi'
     ? (hasRole('lanh_dao') || hasRole('phu_trach_dia_ban'))
     : (hasRole('lanh_dao') || hasRole('ke_toan'));
@@ -129,14 +121,8 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
 
   const checkIfSigned = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('voucher_signatures')
-      .select('id')
-      .eq('voucher_id', transaction.voucherNo)
-      .eq('voucher_type', voucherType)
-      .eq('signer_id', user.id)
-      .maybeSingle();
-    setAlreadySigned(!!data);
+    const { data } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType, user.id);
+    setAlreadySigned(!!(data && data.length > 0));
   };
 
   const handleSign = async () => {
@@ -144,7 +130,6 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
     setSigning(true);
 
     try {
-      // Try local key first, then server key decrypted with password
       let privateKey = getPrivateKey(user.id);
       if (!privateKey) {
         if (!signPassword) {
@@ -164,19 +149,18 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
       const dataHash = await hashData(dataString);
       const signature = await signData(privateKey, dataString);
 
-      const { error } = await supabase.from('voucher_signatures').insert({
-        voucher_id: transaction.voucherNo,
-        voucher_type: voucherType,
-        signer_id: user.id,
+      const { error } = await voucherSignaturesApi.create({
+        voucherId: transaction.voucherNo,
+        voucherType,
         signature,
-        data_hash: dataHash,
+        dataHash,
       });
 
       if (error) {
         if (error.code === '23505') {
           toast.info('Bạn đã ký phiếu này rồi');
         } else {
-          throw error;
+          throw new Error(error.message);
         }
       } else {
         toast.success(`Đã ký duyệt phiếu ${transaction.voucherNo}`);
@@ -194,11 +178,7 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
   const handleVerify = async () => {
     setVerifying(true);
     try {
-      const { data: sigs } = await supabase
-        .from('voucher_signatures')
-        .select('signer_id, signature, data_hash')
-        .eq('voucher_id', transaction.voucherNo)
-        .eq('voucher_type', voucherType);
+      const { data: sigs } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType);
 
       if (!sigs || sigs.length === 0) {
         setVerifyResult({ valid: false, details: 'Chưa có chữ ký nào trên phiếu này' });
@@ -211,21 +191,11 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
       let allValid = true;
 
       for (const sig of sigs) {
-        // Get public key
-        const { data: sigKey } = await supabase
-          .from('digital_signatures')
-          .select('public_key')
-          .eq('user_id', sig.signer_id)
-          .eq('is_active', true)
-          .single();
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('user_id', sig.signer_id)
-          .single();
+        const { data: sigKeys } = await digitalSignaturesApi.get(sig.signer_id, true);
+        const { data: profile } = await profilesApi.getByUserId(sig.signer_id);
 
         const name = profile?.full_name || sig.signer_id;
+        const sigKey = sigKeys && sigKeys.length > 0 ? sigKeys[0] : null;
 
         if (!sigKey) {
           results.push(`❌ ${name}: Không tìm thấy khóa công khai`);
@@ -281,7 +251,6 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
         </Button>
       </div>
 
-      {/* Verify result tooltip */}
       {verifyResult && (
         <Dialog open={!!verifyResult} onOpenChange={() => setVerifyResult(null)}>
           <DialogContent className="max-w-md">
@@ -304,7 +273,6 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
         </Dialog>
       )}
 
-      {/* Sign confirmation dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

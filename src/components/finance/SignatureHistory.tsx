@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -46,22 +46,22 @@ export function SignatureHistory() {
       setLoading(true);
 
       const [sigsRes, profilesRes, rolesRes] = await Promise.all([
-        supabase.from('voucher_signatures').select('*').order('signed_at', { ascending: false }),
-        supabase.from('profiles').select('user_id, full_name'),
-        supabase.from('user_roles').select('user_id, role'),
+        voucherSignaturesApi.get(),
+        profilesApi.getAll(),
+        rolesApi.getAll(),
       ]);
 
       const nameMap = new Map<string, string>();
-      profilesRes.data?.forEach(p => nameMap.set(p.user_id, p.full_name));
+      (profilesRes.data || []).forEach((p: any) => nameMap.set(p.user_id, p.full_name));
 
       const roleMap = new Map<string, string>();
-      rolesRes.data?.forEach(r => {
+      (rolesRes.data || []).forEach((r: any) => {
         if (!roleMap.has(r.user_id) || r.role === 'lanh_dao' || r.role === 'ke_toan') {
           roleMap.set(r.user_id, r.role);
         }
       });
 
-      const mapped: SignatureRecord[] = (sigsRes.data || []).map(s => ({
+      const mapped: SignatureRecord[] = (sigsRes.data || []).map((s: any) => ({
         id: s.id,
         voucher_id: s.voucher_id,
         voucher_type: s.voucher_type,

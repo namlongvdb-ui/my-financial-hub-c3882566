@@ -11,7 +11,7 @@ import { AccountCodeInput } from './AccountCodeInput';
 import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
-import { supabase } from '@/integrations/supabase/client';
+import { voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
@@ -76,26 +76,22 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
   const amount = parseInt(form.amount) || 0;
 
   const fetchSignaturesForPrint = useCallback(async (voucherNo: string) => {
-    const { data: sigs } = await supabase
-      .from('voucher_signatures')
-      .select('signer_id, signed_at')
-      .eq('voucher_id', voucherNo)
-      .eq('voucher_type', type);
+    const { data: sigs } = await voucherSignaturesApi.get(voucherNo, type);
 
     if (!sigs || sigs.length === 0) {
       setPrintSignatures([]);
       return;
     }
 
-    const signerIds = sigs.map(s => s.signer_id);
+    const signerIds = sigs.map((s: any) => s.signer_id);
     const [profilesRes, rolesRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name').in('user_id', signerIds),
-      supabase.from('user_roles').select('user_id, role').in('user_id', signerIds),
+      profilesApi.getAll(),
+      rolesApi.getAll(),
     ]);
 
-    setPrintSignatures(sigs.map(s => {
-      const profile = profilesRes.data?.find(p => p.user_id === s.signer_id);
-      const role = rolesRes.data?.find(r => r.user_id === s.signer_id);
+    setPrintSignatures(sigs.map((s: any) => {
+      const profile = profilesRes.data?.find((p: any) => p.user_id === s.signer_id);
+      const role = rolesRes.data?.find((r: any) => r.user_id === s.signer_id);
       return {
         signer_name: profile?.full_name || 'Unknown',
         role: role?.role || '',

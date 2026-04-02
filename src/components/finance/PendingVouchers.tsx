@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi, voucherSignaturesApi, profilesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { signData, hashData, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
 import { getVoucherLabel, notifyLeaderAfterFirstSign, notifyCreatorToprint, getSigningStep } from '@/lib/notification-utils';
@@ -49,11 +49,8 @@ export function PendingVouchers() {
     setLoading(true);
     if (!user) { setLoading(false); return; }
 
-    const { data: pendingData } = await supabase
-      .from('pending_vouchers')
-      .select('*')
-      .in('status', ['pending', 'partially_signed'])
-      .order('created_at', { ascending: false });
+    const { data: allPending } = await pendingVouchersApi.getAll();
+    const pendingData = (allPending || []).filter((v: any) => ['pending', 'partially_signed'].includes(v.status));
 
     if (!pendingData) { setLoading(false); return; }
 
@@ -94,10 +91,7 @@ export function PendingVouchers() {
     // Get creator names
     const creatorIds = [...new Set(filteredVouchers.map(v => v.created_by))];
     if (creatorIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', creatorIds);
+      const { data: profiles } = await profilesApi.getAll();
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
       filteredVouchers.forEach(v => {
@@ -151,24 +145,21 @@ export function PendingVouchers() {
       const dataHash = await hashData(dataStr);
       const signature = await signData(privateKey, dataStr);
 
-      const { error } = await supabase.from('voucher_signatures').insert({
-        voucher_id: selectedVoucher.voucher_id,
-        voucher_type: selectedVoucher.voucher_type,
-        signer_id: user.id,
+      const { error } = await voucherSignaturesApi.create({
+        voucherId: selectedVoucher.voucher_id,
+        voucherType: selectedVoucher.voucher_type,
         signature,
-        data_hash: dataHash,
+        dataHash: dataHash,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       const signerName = profile?.full_name || 'Người ký';
       const voucherLabel = getVoucherLabel(selectedVoucher.voucher_type);
 
       if (isLeader && selectedVoucher.signing_step === 'first_signed') {
         // Lãnh đạo ký xong (bước 2) → hoàn tất, thông báo người lập in chứng từ
-        await supabase.from('pending_vouchers')
-          .update({ status: 'signed', signed_at: new Date().toISOString() })
-          .eq('id', selectedVoucher.id);
+        await pendingVouchersApi.update(selectedVoucher.id, { status: 'signed', signed_at: new Date().toISOString() });
 
         await notifyCreatorToprint(
           selectedVoucher.created_by,
@@ -180,9 +171,7 @@ export function PendingVouchers() {
         toast.success('Đã ký duyệt hoàn tất. Người lập đã được thông báo để in chứng từ.');
       } else {
         // Kế toán / phụ trách ký xong (bước 1) → chuyển sang partially_signed, thông báo lãnh đạo
-        await supabase.from('pending_vouchers')
-          .update({ status: 'partially_signed' })
-          .eq('id', selectedVoucher.id);
+        await pendingVouchersApi.update(selectedVoucher.id, { status: 'partially_signed' });
 
         await notifyLeaderAfterFirstSign(
           selectedVoucher.voucher_id,

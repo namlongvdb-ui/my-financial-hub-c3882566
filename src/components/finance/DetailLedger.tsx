@@ -11,7 +11,7 @@ import { PrintDetailLedger } from './PrintDetailLedger';
 import { EditTransactionDialog } from './EditTransactionDialog';
 import { exportDetailLedgerExcel } from '@/lib/export-utils';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi } from '@/lib/api-client';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN');
@@ -47,14 +47,14 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
 
   // Fetch approved voucher IDs
   useMemo(() => {
-    supabase
-      .from('pending_vouchers')
-      .select('voucher_id')
-      .in('voucher_type', ['thu', 'chi'])
-      .in('status', ['signed', 'printed'])
-      .then(({ data }) => {
-        if (data) setApprovedIds(new Set(data.map(v => v.voucher_id)));
-      });
+    pendingVouchersApi.getAll().then(({ data }) => {
+      if (data) {
+        const approved = data.filter((v: any) =>
+          ['thu', 'chi'].includes(v.voucher_type) && ['signed', 'printed'].includes(v.status)
+        );
+        setApprovedIds(new Set(approved.map((v: any) => v.voucher_id)));
+      }
+    });
   }, [refreshKey, localRefresh]);
 
   const canModify = (tx: Transaction) => {
