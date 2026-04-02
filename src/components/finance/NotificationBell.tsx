@@ -73,62 +73,11 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
 
     if (!user) return;
 
-    // Listen to new/changed notifications
-    const channel = supabase
-      .channel('notifications-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
-
-    // Listen to pending_vouchers status changes (signed, printed, etc.)
-    const voucherChannel = supabase
-      .channel('voucher-status-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'pending_vouchers',
-        },
-        () => fetchNotifications()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pending_vouchers',
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
-
-    // Listen to voucher_signatures changes (new signatures affect status)
-    const sigChannel = supabase
-      .channel('voucher-sigs-' + user.id)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'voucher_signatures',
-        },
-        () => fetchNotifications()
-      )
-      .subscribe();
+    // Poll for new notifications every 30 seconds (replaces realtime subscriptions)
+    const interval = setInterval(fetchNotifications, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(voucherChannel);
-      supabase.removeChannel(sigChannel);
+      clearInterval(interval);
     };
   }, [user, fetchNotifications]);
 
