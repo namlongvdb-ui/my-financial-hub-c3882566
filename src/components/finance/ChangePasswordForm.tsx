@@ -40,23 +40,16 @@ export function ChangePasswordForm() {
 
     setLoading(true);
     try {
-      // Verify current password by re-signing in
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) throw new Error('Không tìm thấy thông tin người dùng');
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      });
-
-      if (signInError) {
-        toast.error('Mật khẩu hiện tại không đúng');
+      const { error } = await authApi.changePassword(currentPassword, newPassword);
+      if (error) {
+        if (error.message.includes('hiện tại')) {
+          toast.error('Mật khẩu hiện tại không đúng');
+        } else {
+          throw new Error(error.message);
+        }
         setLoading(false);
         return;
       }
-
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
 
       toast.success('Đổi mật khẩu thành công!');
       setCurrentPassword('');
