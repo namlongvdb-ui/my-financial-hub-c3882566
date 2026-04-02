@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi, voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { getVoucherLabel } from '@/lib/notification-utils';
 import { toast } from 'sonner';
