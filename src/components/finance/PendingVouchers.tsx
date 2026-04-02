@@ -49,11 +49,8 @@ export function PendingVouchers() {
     setLoading(true);
     if (!user) { setLoading(false); return; }
 
-    const { data: pendingData } = await supabase
-      .from('pending_vouchers')
-      .select('*')
-      .in('status', ['pending', 'partially_signed'])
-      .order('created_at', { ascending: false });
+    const { data: allPending } = await pendingVouchersApi.getAll();
+    const pendingData = (allPending || []).filter((v: any) => ['pending', 'partially_signed'].includes(v.status));
 
     if (!pendingData) { setLoading(false); return; }
 
