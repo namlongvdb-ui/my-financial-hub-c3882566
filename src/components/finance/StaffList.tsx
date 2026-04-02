@@ -13,13 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { StaffMember, StaffSettings } from '@/types/finance';
-import {
-  getStaffList, addStaff, updateStaff, deleteStaff,
-  getStaffSettings, saveStaffSettings,
-  calculateInsuranceSalary, calculateUnionFee,
-  getTransferHistory, addTransferRecord,
-} from '@/lib/staff-store';
-import { getOrgSettings } from '@/lib/finance-store';
+import { useStaffList, useStaffSettings, useTransferHistory, calculateInsuranceSalary, calculateUnionFee } from '@/hooks/useStaffData';
+import { useOrgSettings } from '@/hooks/useFinanceData';
 import { TransferRecord } from '@/types/finance';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Users, Plus, Trash2, Pencil, Save, Settings2, Printer, Receipt, ChevronsUpDown, Check, ArrowRightLeft, LogOut, History, FileSpreadsheet, MoreHorizontal } from 'lucide-react';
