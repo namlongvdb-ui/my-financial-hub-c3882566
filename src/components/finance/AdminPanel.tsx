@@ -78,14 +78,14 @@ export function AdminPanel() {
   const fetchUsers = async () => {
     setLoading(true);
     const [profilesRes, rolesRes, sigsRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name, username, assigned_area'),
-      supabase.from('user_roles').select('user_id, role'),
-      supabase.from('digital_signatures').select('user_id').eq('is_active', true),
+      profilesApi.getAll(),
+      rolesApi.getAll(),
+      digitalSignaturesApi.get(undefined, true),
     ]);
 
     if (profilesRes.data) {
       const userMap = new Map<string, UserWithRole>();
-      profilesRes.data.forEach(p => {
+      profilesRes.data.forEach((p: any) => {
         userMap.set(p.user_id, {
           user_id: p.user_id,
           full_name: p.full_name,
@@ -97,12 +97,12 @@ export function AdminPanel() {
         });
       });
 
-      rolesRes.data?.forEach(r => {
+      rolesRes.data?.forEach((r: any) => {
         const u = userMap.get(r.user_id);
         if (u) u.roles.push(r.role);
       });
 
-      sigsRes.data?.forEach(s => {
+      sigsRes.data?.forEach((s: any) => {
         const u = userMap.get(s.user_id);
         if (u) u.has_signature = true;
       });
