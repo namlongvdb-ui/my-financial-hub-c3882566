@@ -145,15 +145,14 @@ export function PendingVouchers() {
       const dataHash = await hashData(dataStr);
       const signature = await signData(privateKey, dataStr);
 
-      const { error } = await supabase.from('voucher_signatures').insert({
-        voucher_id: selectedVoucher.voucher_id,
-        voucher_type: selectedVoucher.voucher_type,
-        signer_id: user.id,
+      const { error } = await voucherSignaturesApi.create({
+        voucherId: selectedVoucher.voucher_id,
+        voucherType: selectedVoucher.voucher_type,
         signature,
-        data_hash: dataHash,
+        dataHash: dataHash,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       const signerName = profile?.full_name || 'Người ký';
       const voucherLabel = getVoucherLabel(selectedVoucher.voucher_type);
