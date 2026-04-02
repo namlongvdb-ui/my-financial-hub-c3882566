@@ -249,9 +249,11 @@ export function AdminPanel() {
     if (!areaTarget) return;
     setSavingAreas(true);
     try {
-      await supabase.from('profiles')
-        .update({ assigned_area: editAreas.length > 0 ? editAreas.join(',') : null })
-        .eq('user_id', areaTarget.user_id);
+      await adminApi.manageUser({
+        userId: areaTarget.user_id,
+        action: 'update',
+        assignedArea: editAreas.length > 0 ? editAreas.join(',') : undefined,
+      });
       toast({ title: 'Thành công', description: `Đã cập nhật địa bàn cho ${areaTarget.full_name}` });
       setAreaDialogOpen(false);
       setAreaTarget(null);

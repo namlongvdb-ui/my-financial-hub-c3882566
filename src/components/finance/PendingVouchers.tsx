@@ -171,9 +171,7 @@ export function PendingVouchers() {
         toast.success('Đã ký duyệt hoàn tất. Người lập đã được thông báo để in chứng từ.');
       } else {
         // Kế toán / phụ trách ký xong (bước 1) → chuyển sang partially_signed, thông báo lãnh đạo
-        await supabase.from('pending_vouchers')
-          .update({ status: 'partially_signed' })
-          .eq('id', selectedVoucher.id);
+        await pendingVouchersApi.update(selectedVoucher.id, { status: 'partially_signed' });
 
         await notifyLeaderAfterFirstSign(
           selectedVoucher.voucher_id,
