@@ -16,7 +16,7 @@ import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
 import { VoucherSignatureStatus, SignVoucherButton } from './VoucherSignature';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { PrintVoucher } from './PrintVoucher';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
