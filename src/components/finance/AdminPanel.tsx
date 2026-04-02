@@ -168,11 +168,12 @@ export function AdminPanel() {
   const handleManageUser = async (targetUserId: string, targetName: string, action: 'disable' | 'enable' | 'delete') => {
     setManaging(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
-        body: { user_id: targetUserId, action }
+      const { error } = await adminApi.manageUser({
+        userId: targetUserId,
+        action,
+        isActive: action === 'enable' ? true : action === 'disable' ? false : undefined,
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(error.message);
       const msgs: Record<string, string> = { disable: 'Đã vô hiệu hoá', enable: 'Đã kích hoạt lại', delete: 'Đã xoá' };
       toast({ title: 'Thành công', description: `${msgs[action]} tài khoản ${targetName}` });
       setDeleteTarget(null);
