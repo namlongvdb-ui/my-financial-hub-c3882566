@@ -1,13 +1,16 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { authApi } from '@/lib/api-client';
 
-type AppRole = Database['public']['Enums']['app_role'];
+type AppRole = 'admin' | 'lanh_dao' | 'nguoi_lap' | 'ke_toan' | 'phu_trach_dia_ban';
+
+interface AppUser {
+  id: string;
+  email: string;
+}
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AppUser | null;
+  session: { token: string } | null;
   loading: boolean;
   roles: AppRole[];
   profile: { full_name: string; email: string | null; username: string | null; assigned_area: string | null } | null;
@@ -20,62 +23,53 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<{ token: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [profile, setProfile] = useState<{ full_name: string; email: string | null; username: string | null; assigned_area: string | null } | null>(null);
+  const [profile, setProfile] = useState<AuthContextType['profile']>(null);
 
-  const fetchUserData = async (userId: string) => {
-    const [rolesResult, profileResult] = await Promise.all([
-      supabase.from('user_roles').select('role').eq('user_id', userId),
-      supabase.from('profiles').select('full_name, email, username, assigned_area').eq('user_id', userId).single()
-    ]);
-
-    if (rolesResult.data) {
-      setRoles(rolesResult.data.map(r => r.role));
-    }
-    if (profileResult.data) {
-      setProfile(profileResult.data);
-    }
-  };
-
+  // On mount, check if we have a saved token
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock
-          setTimeout(() => fetchUserData(session.user.id), 0);
-        } else {
-          setRoles([]);
-          setProfile(null);
-        }
+    const checkAuth = async () => {
+      if (!authApi.isLoggedIn()) {
         setLoading(false);
+        return;
       }
-    );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserData(session.user.id);
+      const { data, error } = await authApi.getMe();
+      if (data && !error) {
+        setUser(data.user);
+        setSession({ token: authApi.getToken()! });
+        setRoles((data.roles || []) as AppRole[]);
+        setProfile(data.profile);
+      } else {
+        // Token invalid, clear it
+        authApi.logout();
       }
       setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkAuth();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    const { data, error } = await authApi.login(email, password);
+    if (error) return { error };
+
+    if (data) {
+      setUser(data.user);
+      setSession({ token: data.token });
+      setRoles((data.roles || []) as AppRole[]);
+      setProfile(data.profile);
+    }
+    return { error: null };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    authApi.logout();
+    setUser(null);
+    setSession(null);
     setRoles([]);
     setProfile(null);
   };
