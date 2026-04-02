@@ -125,19 +125,15 @@ export function AdminPanel() {
     setCreating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { username: newUsername, password: newPassword, full_name: newFullName, role: newRole }
+      const { data, error } = await adminApi.createUser({
+        username: newUsername,
+        password: newPassword,
+        fullName: newFullName,
+        role: newRole,
+        assignedArea: newRole === 'phu_trach_dia_ban' ? newAssignedAreas.join(',') : undefined,
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      // Update assigned_area for phu_trach_dia_ban (comma-separated)
-      if (newRole === 'phu_trach_dia_ban' && newAssignedAreas.length > 0 && data?.user?.id) {
-        await supabase.from('profiles')
-          .update({ assigned_area: newAssignedAreas.join(',') })
-          .eq('user_id', data.user.id);
-      }
+      if (error) throw new Error(error.message);
 
       toast({ title: 'Thành công', description: `Đã tạo tài khoản cho ${newFullName}` });
       setCreateDialogOpen(false);
