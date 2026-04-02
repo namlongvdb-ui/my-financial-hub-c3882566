@@ -46,9 +46,9 @@ export function SignatureHistory() {
       setLoading(true);
 
       const [sigsRes, profilesRes, rolesRes] = await Promise.all([
-        supabase.from('voucher_signatures').select('*').order('signed_at', { ascending: false }),
-        supabase.from('profiles').select('user_id, full_name'),
-        supabase.from('user_roles').select('user_id, role'),
+        voucherSignaturesApi.get(),
+        profilesApi.getAll(),
+        rolesApi.getAll(),
       ]);
 
       const nameMap = new Map<string, string>();
