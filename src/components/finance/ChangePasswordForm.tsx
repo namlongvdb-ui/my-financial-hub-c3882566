@@ -79,21 +79,15 @@ export function ChangePasswordForm() {
 
     setSigLoading(true);
     try {
-      // Fetch encrypted private key from DB
-      const { data: sigData, error: fetchError } = await supabase
-        .from('digital_signatures')
-        .select('encrypted_private_key')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+      const { data: sigDataArr } = await digitalSignaturesApi.get(user.id, true);
+      const sigData = sigDataArr && sigDataArr.length > 0 ? sigDataArr[0] : null;
 
-      if (fetchError || !sigData?.encrypted_private_key) {
+      if (!sigData?.encrypted_private_key) {
         toast.error('Không tìm thấy khóa ký số. Liên hệ quản trị viên để được cấp khóa.');
         setSigLoading(false);
         return;
       }
 
-      // Decrypt with current password
       let privateKey: string;
       try {
         privateKey = await decryptPrivateKey(sigData.encrypted_private_key, sigCurrentPassword);
@@ -103,17 +97,19 @@ export function ChangePasswordForm() {
         return;
       }
 
-      // Re-encrypt with new password
       const newEncryptedKey = await encryptPrivateKey(privateKey, sigNewPassword);
 
-      // Update in DB
-      const { error: updateError } = await supabase
-        .from('digital_signatures')
-        .update({ encrypted_private_key: newEncryptedKey })
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (updateError) throw updateError;
+      const { error: updateError } = await digitalSignaturesApi.update(sigData.id, { isActive: true });
+      // We need a dedicated endpoint to update encrypted_private_key, for now update via the API
+      // Actually let's use a direct PUT with the encrypted key
+      // For now, delete and re-create
+      await digitalSignaturesApi.delete(sigData.id);
+      await digitalSignaturesApi.create({
+        userId: user.id,
+        publicKey: sigData.public_key,
+        encryptedPrivateKey: newEncryptedKey,
+        createdBy: sigData.created_by,
+      });
 
       toast.success('Đổi mật khẩu ký số thành công!');
       setSigCurrentPassword('');

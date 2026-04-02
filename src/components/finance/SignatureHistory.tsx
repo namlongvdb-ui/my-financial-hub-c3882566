@@ -61,7 +61,7 @@ export function SignatureHistory() {
         }
       });
 
-      const mapped: SignatureRecord[] = (sigsRes.data || []).map(s => ({
+      const mapped: SignatureRecord[] = (sigsRes.data || []).map((s: any) => ({
         id: s.id,
         voucher_id: s.voucher_id,
         voucher_type: s.voucher_type,
