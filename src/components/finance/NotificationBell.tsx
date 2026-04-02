@@ -84,7 +84,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const markAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    await notificationsApi.markRead(id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
@@ -92,7 +92,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
     if (!user) return;
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
     if (unreadIds.length === 0) return;
-    await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds);
+    await notificationsApi.markAllRead();
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
