@@ -11,7 +11,7 @@ import { AccountCodeInput } from './AccountCodeInput';
 import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
-import { supabase } from '@/integrations/supabase/client';
+import { voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
