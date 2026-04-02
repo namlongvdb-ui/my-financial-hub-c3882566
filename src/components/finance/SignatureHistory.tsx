@@ -52,7 +52,7 @@ export function SignatureHistory() {
       ]);
 
       const nameMap = new Map<string, string>();
-      profilesRes.data?.forEach(p => nameMap.set(p.user_id, p.full_name));
+      (profilesRes.data || []).forEach((p: any) => nameMap.set(p.user_id, p.full_name));
 
       const roleMap = new Map<string, string>();
       rolesRes.data?.forEach(r => {
