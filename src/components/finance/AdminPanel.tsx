@@ -188,11 +188,12 @@ export function AdminPanel() {
     if (!roleTarget || !selectedRole) return;
     setChangingRole(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
-        body: { user_id: roleTarget.user_id, action: 'change_role', new_role: selectedRole }
+      const { error } = await adminApi.manageUser({
+        userId: roleTarget.user_id,
+        action: 'update',
+        role: selectedRole,
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(error.message);
       toast({ title: 'Thành công', description: `Đã đổi vai trò của ${roleTarget.full_name} thành ${ROLE_LABELS[selectedRole]}` });
       setRoleDialogOpen(false);
       setRoleTarget(null);
