@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Bell } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { notificationsApi, pendingVouchersApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
