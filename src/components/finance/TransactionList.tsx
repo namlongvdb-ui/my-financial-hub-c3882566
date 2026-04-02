@@ -54,14 +54,12 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
   // Fetch approved/signed voucher IDs to prevent editing
   const fetchApprovedIds = useCallback(async () => {
-    const { data } = await supabase
-      .from('pending_vouchers')
-      .select('voucher_id')
-      .eq('voucher_type', type)
-      .in('status', ['signed', 'printed']);
-    
+    const { data } = await pendingVouchersApi.getAll();
     if (data) {
-      setApprovedVoucherIds(new Set(data.map(v => v.voucher_id)));
+      const approved = data.filter((v: any) => 
+        v.voucher_type === type && ['signed', 'printed'].includes(v.status)
+      );
+      setApprovedVoucherIds(new Set(approved.map((v: any) => v.voucher_id)));
     }
   }, [type]);
 

@@ -98,9 +98,7 @@ export function ApprovedVouchers() {
 
     setTimeout(() => {
       window.print();
-      supabase.from('pending_vouchers')
-        .update({ status: 'printed', printed_at: new Date().toISOString() })
-        .eq('id', voucher.id)
+      pendingVouchersApi.update(voucher.id, { status: 'printed', printed_at: new Date().toISOString() })
         .then(() => { fetchApproved(); });
     }, 300);
   };
