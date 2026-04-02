@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { profilesApi, rolesApi, digitalSignaturesApi, adminApi } from '@/lib/api-client';
 import { getOrgSettings } from '@/lib/finance-store';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { generateRSAKeyPair, storePrivateKey, encryptPrivateKey } from '@/lib/crypto-utils';
 import { UserPlus, Key, Shield, Users, RotateCcw, Ban, Trash2, UserCheck, RefreshCw, MapPin } from 'lucide-react';
-import type { Database } from '@/integrations/supabase/types';
 
-type AppRole = Database['public']['Enums']['app_role'];
+type AppRole = 'admin' | 'lanh_dao' | 'nguoi_lap' | 'ke_toan' | 'phu_trach_dia_ban';
 
 interface UserWithRole {
   user_id: string;
