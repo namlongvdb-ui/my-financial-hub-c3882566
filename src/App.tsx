@@ -29,6 +29,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/migrate" element={<MigrateData />} />
       <Route path="/index" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
