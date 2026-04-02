@@ -91,10 +91,7 @@ export function PendingVouchers() {
     // Get creator names
     const creatorIds = [...new Set(filteredVouchers.map(v => v.created_by))];
     if (creatorIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', creatorIds);
+      const { data: profiles } = await profilesApi.getAll();
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
       filteredVouchers.forEach(v => {
