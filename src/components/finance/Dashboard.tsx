@@ -1,24 +1,26 @@
-import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
+import { useOrgSettings, useTransactions, useYearData } from '@/hooks/useFinanceData';
 import { exportFullReportExcel } from '@/lib/export-utils';
 import { Wallet, TrendingUp, TrendingDown, Banknote, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useMemo } from 'react';
 
 function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN') + ' ₫';
 }
 
 export function Dashboard({ refreshKey }: { refreshKey?: number }) {
-  const settings = getOrgSettings();
+  const { settings } = useOrgSettings();
+  const { activeYear, getOpeningBalanceForYear } = useYearData(refreshKey);
+  const { transactions } = useTransactions(activeYear, undefined, refreshKey);
+
   const stats = useMemo(() => {
-    const txs = getTransactions();
-    const opening = getOpeningBalance();
-    const totalThu = txs.filter(t => t.type === 'thu').reduce((s, t) => s + t.amount, 0);
-    const totalChi = txs.filter(t => t.type === 'chi').reduce((s, t) => s + t.amount, 0);
+    const opening = getOpeningBalanceForYear(activeYear);
+    const totalThu = transactions.filter(t => t.type === 'thu').reduce((s, t) => s + t.amount, 0);
+    const totalChi = transactions.filter(t => t.type === 'chi').reduce((s, t) => s + t.amount, 0);
     const closing = opening + totalThu - totalChi;
-    return { opening, totalThu, totalChi, closing, txCount: txs.length };
-  }, [refreshKey]);
+    return { opening, totalThu, totalChi, closing, txCount: transactions.length };
+  }, [transactions, activeYear, getOpeningBalanceForYear]);
 
   const cards = [
     { title: 'Số dư đầu kỳ', value: stats.opening, icon: Banknote, className: 'border-l-4 border-l-primary' },

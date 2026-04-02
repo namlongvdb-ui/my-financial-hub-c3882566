@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { addTransaction, updateTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { numberToVietnameseWords } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
 import { Heart, Printer, Save, X, DollarSign, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,35 +13,51 @@ import { PrintVisitVoucher } from './PrintVisitVoucher';
 import { TransactionList } from './TransactionList';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
+import { useOrgSettings, useTransactions } from '@/hooks/useFinanceData';
 
 interface VisitVoucherFormProps {
   onSaved?: () => void;
   refreshKey?: number;
 }
 
-const emptyForm = (settings: ReturnType<typeof getOrgSettings>) => ({
-  date: new Date().toISOString().split('T')[0],
-  voucherNo: getNextVoucherNo('tham-hoi'),
-  visitorDepartment: settings.unionGroups[0]?.name || '',
-  recipientName: '',
-  reason: '',
-  amount: '',
-  unionGroupName: settings.unionGroups[0]?.name || '',
-});
-
 export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps) {
   const { user, profile } = useAuth();
-  const settings = getOrgSettings();
-  const [form, setForm] = useState(() => emptyForm(settings));
+  const { settings } = useOrgSettings();
+  const { addTransaction, updateTransaction, getNextVoucherNo } = useTransactions();
+
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    voucherNo: '',
+    visitorDepartment: '',
+    recipientName: '',
+    reason: '',
+    amount: '',
+    unionGroupName: '',
+  });
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   const amount = parseInt(form.amount) || 0;
 
+  useEffect(() => {
+    getNextVoucherNo('tham-hoi').then(no => {
+      if (no) setForm(f => ({ ...f, voucherNo: no }));
+    });
+  }, [getNextVoucherNo]);
+
+  useEffect(() => {
+    if (settings.unionGroups.length > 0 && !form.unionGroupName) {
+      setForm(f => ({
+        ...f,
+        visitorDepartment: f.visitorDepartment || settings.unionGroups[0]?.name || '',
+        unionGroupName: f.unionGroupName || settings.unionGroups[0]?.name || '',
+      }));
+    }
+  }, [settings]);
+
   const handleSelectForEdit = (tx: Transaction) => {
     setEditingTx(tx);
     setForm({
-      date: tx.date,
-      voucherNo: tx.voucherNo,
+      date: tx.date, voucherNo: tx.voucherNo,
       visitorDepartment: tx.department,
       recipientName: tx.recipientName || tx.personName,
       reason: tx.reason || tx.description,
@@ -51,12 +67,18 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = async () => {
     setEditingTx(null);
-    setForm(emptyForm(settings));
+    const no = await getNextVoucherNo('tham-hoi');
+    setForm({
+      date: new Date().toISOString().split('T')[0], voucherNo: no || '',
+      visitorDepartment: settings.unionGroups[0]?.name || '',
+      recipientName: '', reason: '', amount: '',
+      unionGroupName: settings.unionGroups[0]?.name || '',
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.recipientName || !form.reason || amount <= 0) {
       toast.error('Vui lòng điền đầy đủ thông tin');
@@ -64,53 +86,42 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
     }
 
     if (editingTx) {
-      updateTransaction(editingTx.id, {
-        date: form.date,
-        voucherNo: form.voucherNo,
-        type: 'tham-hoi',
-        amount,
-        description: form.reason,
-        personName: form.recipientName,
-        department: form.unionGroupName,
-        recipientName: form.recipientName,
-        reason: form.reason,
+      await updateTransaction(editingTx.id, {
+        date: form.date, voucherNo: form.voucherNo, type: 'tham-hoi', amount,
+        description: form.reason, personName: form.recipientName,
+        department: form.unionGroupName, recipientName: form.recipientName, reason: form.reason,
       });
       toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
       const txData = {
-        date: form.date,
-        voucherNo: form.voucherNo,
-        type: 'tham-hoi' as const,
-        amount,
-        description: form.reason,
-        personName: form.recipientName,
-        department: form.unionGroupName,
-        accountCode: '',
-        approver: settings.unionGroups[0]?.leaderName || '',
-        attachments: 0,
-        recipientName: form.recipientName,
-        reason: form.reason,
-        createdBy: user?.id,
+        date: form.date, voucherNo: form.voucherNo, type: 'tham-hoi' as const, amount,
+        description: form.reason, personName: form.recipientName,
+        department: form.unionGroupName, accountCode: '',
+        approver: settings.unionGroups[0]?.leaderName || '', attachments: 0,
+        recipientName: form.recipientName, reason: form.reason, createdBy: user?.id,
       };
-      addTransaction(txData);
-      
+      await addTransaction(txData as any);
       if (user) {
         submitVoucherForSigning(form.voucherNo, 'tham-hoi', txData, user.id);
         notifySigners(form.voucherNo, 'tham-hoi', getVoucherLabel('tham-hoi'), profile?.full_name || 'Kế toán', form.unionGroupName);
       }
-      
       toast.success(`Phiếu thăm hỏi ${form.voucherNo} đã được lưu`);
     }
 
-    setForm(emptyForm(settings));
+    const no = await getNextVoucherNo('tham-hoi');
+    setForm({
+      date: new Date().toISOString().split('T')[0], voucherNo: no || '',
+      visitorDepartment: settings.unionGroups[0]?.name || '',
+      recipientName: '', reason: '', amount: '',
+      unionGroupName: settings.unionGroups[0]?.name || '',
+    });
     onSaved?.();
   };
 
   return (
     <>
       <Card className="max-w-3xl mx-auto shadow-lg no-print overflow-hidden border-0 ring-1 ring-border">
-        {/* Header */}
         <CardHeader className={`relative py-5 ${editingTx ? 'bg-amber-50 dark:bg-amber-950/30 border-b-2 border-amber-300 dark:border-amber-700' : 'bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 border-b-2 border-rose-200 dark:border-rose-800'}`}>
           <div className="flex items-center gap-2 absolute right-4 top-4">
             {editingTx && (
@@ -129,17 +140,12 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
             <CardTitle className="text-xl font-bold text-foreground">
               {editingTx ? 'Sửa phiếu thăm hỏi' : 'PHIẾU THĂM HỎI'}
             </CardTitle>
-            {editingTx && (
-              <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">
-                Đang sửa phiếu {editingTx.voucherNo}
-              </p>
-            )}
+            {editingTx && <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 font-medium">Đang sửa phiếu {editingTx.voucherNo}</p>}
           </div>
         </CardHeader>
 
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Row 1: Date & Voucher No */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs font-medium">Ngày</Label>
@@ -151,45 +157,28 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
               </div>
             </div>
 
-            {/* Union group */}
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
-                Tổ công đoàn
-              </Label>
+              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Tổ công đoàn</Label>
               <Select value={form.unionGroupName} onValueChange={val => setForm({ ...form, unionGroupName: val, visitorDepartment: val })}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Chọn tổ công đoàn..." />
-                </SelectTrigger>
+                <SelectTrigger className="h-10"><SelectValue placeholder="Chọn tổ công đoàn..." /></SelectTrigger>
                 <SelectContent>
-                  {settings.unionGroups.map(g => (
-                    <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
-                  ))}
+                  {settings.unionGroups.map(g => (<SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Recipient name */}
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                Họ và tên người được thăm hỏi
-              </Label>
+              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Họ và tên người được thăm hỏi</Label>
               <Input value={form.recipientName} onChange={e => setForm({ ...form, recipientName: e.target.value })} placeholder="Nhập họ tên..." className="h-10" />
             </div>
 
-            {/* Reason */}
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs font-medium">Lý do thăm hỏi</Label>
               <Textarea value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder="Lý do thăm hỏi..." rows={2} className="resize-none" />
             </div>
 
-            {/* Amount */}
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <DollarSign className="h-3.5 w-3.5" />
-                Số tiền (VNĐ)
-              </Label>
+              <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" /> Số tiền (VNĐ)</Label>
               <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="h-12 text-xl font-bold tracking-wide" />
             </div>
 
@@ -208,24 +197,10 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
       </Card>
 
       <div className="print-only hidden">
-        <PrintVisitVoucher data={{
-          date: form.date,
-          visitorDepartment: form.visitorDepartment,
-          recipientName: form.recipientName,
-          reason: form.reason,
-          amount,
-          unionGroupName: form.unionGroupName,
-        }} />
+        <PrintVisitVoucher data={{ date: form.date, visitorDepartment: form.visitorDepartment, recipientName: form.recipientName, reason: form.reason, amount, unionGroupName: form.unionGroupName }} />
       </div>
 
-      <TransactionList
-        type="tham-hoi"
-        title="PHIẾU THĂM HỎI"
-        personLabel="Người được thăm hỏi"
-        onChanged={onSaved}
-        refreshKey={refreshKey}
-        onSelectForEdit={handleSelectForEdit}
-      />
+      <TransactionList type="tham-hoi" title="PHIẾU THĂM HỎI" personLabel="Người được thăm hỏi" onChanged={onSaved} refreshKey={refreshKey} onSelectForEdit={handleSelectForEdit} />
     </>
   );
 }

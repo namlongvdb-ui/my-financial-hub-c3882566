@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { getTransactions, getOpeningBalance, getOrgSettings } from '@/lib/finance-store';
+import { useOrgSettings, useTransactions, useYearData } from '@/hooks/useFinanceData';
 import { BookOpen, Printer, Download } from 'lucide-react';
 import { PrintCashBook } from './PrintCashBook';
 import { exportCashBookExcel } from '@/lib/export-utils';
@@ -16,10 +16,12 @@ function formatDate(d: string) {
 }
 
 export function CashBook({ refreshKey }: { refreshKey?: number }) {
-  const settings = getOrgSettings();
+  const { activeYear, getOpeningBalanceForYear } = useYearData(refreshKey);
+  const { transactions } = useTransactions(activeYear, undefined, refreshKey);
+
   const data = useMemo(() => {
-    const txs = getTransactions().filter(tx => tx.type === 'thu' || tx.type === 'chi');
-    const opening = getOpeningBalance();
+    const txs = transactions.filter(tx => tx.type === 'thu' || tx.type === 'chi');
+    const opening = getOpeningBalanceForYear(activeYear);
     let balance = opening;
 
     const rows = txs
@@ -35,7 +37,7 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
     const totalChi = rows.reduce((s, r) => s + r.chi, 0);
 
     return { rows, opening, totalThu, totalChi, closing: opening + totalThu - totalChi };
-  }, [refreshKey]);
+  }, [transactions, activeYear, getOpeningBalanceForYear]);
 
   return (
     <>
@@ -102,7 +104,6 @@ export function CashBook({ refreshKey }: { refreshKey?: number }) {
               </TableBody>
             </Table>
           </div>
-
         </CardContent>
       </Card>
 

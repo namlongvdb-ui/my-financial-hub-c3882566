@@ -4,9 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { addTransaction, updateTransaction, getNextVoucherNo, numberToVietnameseWords, getOrgSettings } from '@/lib/finance-store';
+import { numberToVietnameseWords } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { FileText, Save, Printer, X, DollarSign, User, Building2, Hash } from 'lucide-react';
+import { FileText, Save, Printer, X, DollarSign, User, Building2 } from 'lucide-react';
 import { AccountCodeInput } from './AccountCodeInput';
 import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
@@ -14,6 +14,7 @@ import { VoucherList } from './VoucherList';
 import { voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
+import { useOrgSettings, useTransactions } from '@/hooks/useFinanceData';
 
 function DepartmentCombobox({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
   const [open, setOpen] = useState(false);
@@ -52,81 +53,76 @@ interface VoucherFormProps {
   refreshKey?: number;
 }
 
-const emptyForm = (type: 'thu' | 'chi', settings: ReturnType<typeof getOrgSettings>) => ({
-  date: new Date().toISOString().split('T')[0],
-  voucherNo: getNextVoucherNo(type),
-  amount: '',
-  description: '',
-  personName: '',
-  department: '',
-  accountCode: settings.defaultAccountCode,
-  approver: settings.leaderName,
-  attachments: 1,
-});
-
 export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
   const { user, profile } = useAuth();
   const title = type === 'thu' ? 'PHIẾU THU' : 'PHIẾU CHI';
-  const settings = getOrgSettings();
+  const { settings } = useOrgSettings();
+  const { addTransaction, updateTransaction, getNextVoucherNo } = useTransactions();
 
-  const [form, setForm] = useState(() => emptyForm(type, settings));
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    voucherNo: '',
+    amount: '',
+    description: '',
+    personName: '',
+    department: '',
+    accountCode: settings.defaultAccountCode,
+    approver: settings.leaderName,
+    attachments: 1,
+  });
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [printSignatures, setPrintSignatures] = useState<{ signer_name: string; role: string; signed_at: string }[]>([]);
 
   const amount = parseInt(form.amount) || 0;
 
+  // Load next voucher number
+  useEffect(() => {
+    getNextVoucherNo(type).then(no => {
+      if (no) setForm(f => ({ ...f, voucherNo: no }));
+    });
+  }, [type, getNextVoucherNo]);
+
+  // Update defaults when settings load
+  useEffect(() => {
+    setForm(f => ({
+      ...f,
+      accountCode: f.accountCode || settings.defaultAccountCode,
+      approver: f.approver || settings.leaderName,
+    }));
+  }, [settings]);
+
   const fetchSignaturesForPrint = useCallback(async (voucherNo: string) => {
     const { data: sigs } = await voucherSignaturesApi.get(voucherNo, type);
-
-    if (!sigs || sigs.length === 0) {
-      setPrintSignatures([]);
-      return;
-    }
-
-    const signerIds = sigs.map((s: any) => s.signer_id);
-    const [profilesRes, rolesRes] = await Promise.all([
-      profilesApi.getAll(),
-      rolesApi.getAll(),
-    ]);
-
+    if (!sigs || sigs.length === 0) { setPrintSignatures([]); return; }
+    const [profilesRes, rolesRes] = await Promise.all([profilesApi.getAll(), rolesApi.getAll()]);
     setPrintSignatures(sigs.map((s: any) => {
-      const profile = profilesRes.data?.find((p: any) => p.user_id === s.signer_id);
-      const role = rolesRes.data?.find((r: any) => r.user_id === s.signer_id);
-      return {
-        signer_name: profile?.full_name || 'Unknown',
-        role: role?.role || '',
-        signed_at: s.signed_at,
-      };
+      const p = profilesRes.data?.find((pr: any) => pr.user_id === s.signer_id);
+      const r = rolesRes.data?.find((ro: any) => ro.user_id === s.signer_id);
+      return { signer_name: p?.full_name || 'Unknown', role: r?.role || '', signed_at: s.signed_at };
     }));
-  }, [type]);
-
-  useEffect(() => {
-    setForm(emptyForm(type, settings));
-    setEditingTx(null);
   }, [type]);
 
   const handleSelectForEdit = (tx: Transaction) => {
     setEditingTx(tx);
     setForm({
-      date: tx.date,
-      voucherNo: tx.voucherNo,
-      amount: tx.amount.toString(),
-      description: tx.description,
-      personName: tx.personName,
-      department: tx.department,
-      accountCode: tx.accountCode,
-      approver: tx.approver,
-      attachments: tx.attachments,
+      date: tx.date, voucherNo: tx.voucherNo, amount: tx.amount.toString(),
+      description: tx.description, personName: tx.personName, department: tx.department,
+      accountCode: tx.accountCode, approver: tx.approver, attachments: tx.attachments,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = async () => {
     setEditingTx(null);
-    setForm(emptyForm(type, settings));
+    const no = await getNextVoucherNo(type);
+    setForm({
+      date: new Date().toISOString().split('T')[0], voucherNo: no || '',
+      amount: '', description: '', personName: '', department: '',
+      accountCode: settings.defaultAccountCode, approver: settings.leaderName, attachments: 1,
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.personName || !form.description || amount <= 0) {
       toast.error('Vui lòng điền đầy đủ thông tin');
@@ -134,46 +130,34 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
     }
 
     if (editingTx) {
-      updateTransaction(editingTx.id, {
-        date: form.date,
-        voucherNo: form.voucherNo,
-        type,
-        amount,
-        description: form.description,
-        personName: form.personName,
-        department: form.department,
-        accountCode: form.accountCode,
-        approver: form.approver,
-        attachments: form.attachments,
+      await updateTransaction(editingTx.id, {
+        date: form.date, voucherNo: form.voucherNo, type, amount,
+        description: form.description, personName: form.personName, department: form.department,
+        accountCode: form.accountCode, approver: form.approver, attachments: form.attachments,
       });
       toast.success(`${title} ${form.voucherNo} đã được cập nhật`);
       setEditingTx(null);
     } else {
       const txData = {
-        date: form.date,
-        voucherNo: form.voucherNo,
-        type,
-        amount,
-        description: form.description,
-        personName: form.personName,
-        department: form.department,
-        accountCode: form.accountCode,
-        approver: form.approver,
-        attachments: form.attachments,
+        date: form.date, voucherNo: form.voucherNo, type, amount,
+        description: form.description, personName: form.personName, department: form.department,
+        accountCode: form.accountCode, approver: form.approver, attachments: form.attachments,
         createdBy: user?.id,
       };
-      addTransaction(txData);
-      
-      // Submit for signing and notify signers
+      await addTransaction(txData as any);
       if (user) {
         submitVoucherForSigning(form.voucherNo, type, txData, user.id);
         notifySigners(form.voucherNo, type, getVoucherLabel(type), profile?.full_name || 'Kế toán');
       }
-      
       toast.success(`${title} ${form.voucherNo} đã được lưu`);
     }
 
-    setForm(emptyForm(type, settings));
+    const no = await getNextVoucherNo(type);
+    setForm({
+      date: new Date().toISOString().split('T')[0], voucherNo: no || '',
+      amount: '', description: '', personName: '', department: '',
+      accountCode: settings.defaultAccountCode, approver: settings.leaderName, attachments: 1,
+    });
     onSaved?.();
   };
 
@@ -182,7 +166,6 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
   return (
     <>
       <Card className="max-w-3xl mx-auto shadow-lg no-print overflow-hidden border-0 ring-1 ring-border">
-        {/* Header */}
         <CardHeader className={`relative py-5 ${editingTx ? 'bg-amber-50 dark:bg-amber-950/30 border-b-2 border-amber-300 dark:border-amber-700' : isThu ? 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b-2 border-emerald-200 dark:border-emerald-800' : 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-b-2 border-blue-200 dark:border-blue-800'}`}>
           <div className="flex items-center gap-2 absolute right-4 top-4">
             {editingTx && (
@@ -214,7 +197,6 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
 
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Row 1: Date, Voucher No, Account codes */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs font-medium">Ngày</Label>
@@ -230,47 +212,32 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs font-medium">TK {type === 'chi' ? 'Nợ' : 'Có'}</Label>
-                <AccountCodeInput
-                  value={form.accountCode}
-                  onChange={code => setForm({ ...form, accountCode: code })}
-                  placeholder={settings.defaultAccountCode || 'Chọn TK...'}
-                />
+                <AccountCodeInput value={form.accountCode} onChange={code => setForm({ ...form, accountCode: code })} placeholder={settings.defaultAccountCode || 'Chọn TK...'} />
               </div>
             </div>
 
-            {/* Person name */}
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                Họ và tên người {type === 'thu' ? 'nộp' : 'nhận'} tiền
+                <User className="h-3.5 w-3.5" /> Họ và tên người {type === 'thu' ? 'nộp' : 'nhận'} tiền
               </Label>
               <Input value={form.personName} onChange={e => setForm({ ...form, personName: e.target.value })} placeholder="Nhập họ tên..." className="h-10" />
             </div>
 
-            {/* Department */}
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5" />
-                Đơn vị
+                <Building2 className="h-3.5 w-3.5" /> Đơn vị
               </Label>
-              <DepartmentCombobox
-                value={form.department}
-                onChange={(val) => setForm({ ...form, department: val })}
-                options={settings.unionGroups.map(g => g.name)}
-              />
+              <DepartmentCombobox value={form.department} onChange={(val) => setForm({ ...form, department: val })} options={settings.unionGroups.map(g => g.name)} />
             </div>
 
-            {/* Description */}
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs font-medium">Nội dung</Label>
               <Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Nội dung chi tiết..." rows={2} className="resize-none" />
             </div>
 
-            {/* Amount */}
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs font-medium flex items-center gap-1.5">
-                <DollarSign className="h-3.5 w-3.5" />
-                Số tiền (VNĐ)
+                <DollarSign className="h-3.5 w-3.5" /> Số tiền (VNĐ)
               </Label>
               <Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0" className="h-12 text-xl font-bold tracking-wide" />
             </div>
@@ -290,21 +257,7 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
       </Card>
 
       <div className="print-only hidden">
-        <PrintVoucher
-          type={type}
-          data={{
-            date: form.date,
-            voucherNo: form.voucherNo,
-            amount,
-            description: form.description,
-            personName: form.personName,
-            department: form.department,
-            accountCode: form.accountCode,
-            approver: form.approver,
-            attachments: form.attachments,
-          }}
-          signatures={printSignatures}
-        />
+        <PrintVoucher type={type} data={{ date: form.date, voucherNo: form.voucherNo, amount, description: form.description, personName: form.personName, department: form.department, accountCode: form.accountCode, approver: form.approver, attachments: form.attachments }} signatures={printSignatures} />
       </div>
 
       <VoucherList type={type} onChanged={onSaved} refreshKey={refreshKey} onSelectForEdit={handleSelectForEdit} />

@@ -5,11 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  getActiveYear, setActiveYear, getAvailableYears, getYearDataList,
-  calculateClosingBalance, closeYear, isYearClosed, getOpeningBalanceForYear,
-  getTransactionsForYear
-} from '@/lib/finance-store';
+import { useYearData, useTransactions } from '@/hooks/useFinanceData';
 import { Lock, Unlock, ArrowRightLeft, Calendar, BookOpenCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,28 +16,28 @@ interface YearClosingProps {
 }
 
 export function YearClosing({ onYearChanged }: YearClosingProps) {
-  const [refreshKey, setRefreshKey] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
+  const {
+    yearDataList, activeYear, setActiveYear, availableYears,
+    closeYear, isYearClosed, getOpeningBalanceForYear, refetch,
+  } = useYearData();
 
-  const activeYear = useMemo(() => getActiveYear(), [refreshKey]);
-  const availableYears = useMemo(() => getAvailableYears(), [refreshKey]);
-  const yearDataList = useMemo(() => getYearDataList().sort((a, b) => b.year - a.year), [refreshKey]);
-  const isClosed = useMemo(() => isYearClosed(activeYear), [activeYear, refreshKey]);
+  const { transactions } = useTransactions(activeYear);
+  const isClosed = isYearClosed(activeYear);
 
   const currentYearStats = useMemo(() => {
-    const txs = getTransactionsForYear(activeYear);
     const opening = getOpeningBalanceForYear(activeYear);
-    const totalThu = txs.filter(t => t.type === 'thu').reduce((s, t) => s + t.amount, 0);
-    const totalChi = txs.filter(t => t.type === 'chi').reduce((s, t) => s + t.amount, 0);
+    const totalThu = transactions.filter(t => t.type === 'thu').reduce((s, t) => s + t.amount, 0);
+    const totalChi = transactions.filter(t => t.type === 'chi').reduce((s, t) => s + t.amount, 0);
     const closing = opening + totalThu - totalChi;
-    return { opening, totalThu, totalChi, closing, txCount: txs.length };
-  }, [activeYear, refreshKey]);
+    return { opening, totalThu, totalChi, closing, txCount: transactions.length };
+  }, [activeYear, transactions, getOpeningBalanceForYear]);
 
-  const handleCloseYear = () => {
-    const result = closeYear(activeYear);
+  const handleCloseYear = async () => {
+    const result = await closeYear(activeYear);
     if (result.success) {
       toast.success(result.message);
-      setRefreshKey(k => k + 1);
+      setActiveYear(activeYear + 1);
       onYearChanged?.();
     } else {
       toast.error(result.message);
@@ -52,14 +48,14 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
   const handleSwitchYear = (yearStr: string) => {
     const year = parseInt(yearStr, 10);
     setActiveYear(year);
-    setRefreshKey(k => k + 1);
     onYearChanged?.();
     toast.info(`Đã chuyển sang năm ${year}`);
   };
 
+  const sortedYearData = useMemo(() => [...yearDataList].sort((a, b) => b.year - a.year), [yearDataList]);
+
   return (
     <div className="space-y-6">
-      {/* Year Selector */}
       <Card className="border-border shadow-lg">
         <CardHeader className="bg-primary/5 border-b border-border">
           <CardTitle className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -72,35 +68,24 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <span className="font-medium">Năm hạch toán:</span>
               <Select value={String(activeYear)} onValueChange={handleSwitchYear}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {availableYears.map(y => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y} {isYearClosed(y) ? '🔒' : ''}
-                    </SelectItem>
+                    <SelectItem key={y} value={String(y)}>{y} {isYearClosed(y) ? '🔒' : ''}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <Badge variant={isClosed ? 'destructive' : 'default'} className="text-sm py-1 px-3">
-              {isClosed ? (
-                <><Lock className="h-3.5 w-3.5 mr-1" /> Đã khóa sổ</>
-              ) : (
-                <><Unlock className="h-3.5 w-3.5 mr-1" /> Đang mở</>
-              )}
+              {isClosed ? (<><Lock className="h-3.5 w-3.5 mr-1" /> Đã khóa sổ</>) : (<><Unlock className="h-3.5 w-3.5 mr-1" /> Đang mở</>)}
             </Badge>
           </div>
         </CardContent>
       </Card>
 
-      {/* Current Year Summary */}
       <Card className="border-border shadow-lg">
         <CardHeader className="bg-primary/5 border-b border-border">
-          <CardTitle className="text-lg font-bold text-primary">
-            Tổng hợp năm {activeYear}
-          </CardTitle>
+          <CardTitle className="text-lg font-bold text-primary">Tổng hợp năm {activeYear}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -128,11 +113,7 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
 
           {!isClosed && (
             <div className="mt-6 flex justify-center">
-              <Button 
-                size="lg" 
-                className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button size="lg" className="bg-amber-600 hover:bg-amber-700 text-white gap-2" onClick={() => setShowConfirm(true)}>
                 <ArrowRightLeft className="h-5 w-5" />
                 Khóa sổ năm {activeYear} & Kết chuyển sang năm {activeYear + 1}
               </Button>
@@ -141,20 +122,15 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
 
           {isClosed && (
             <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center">
-              <p className="text-amber-800 font-medium">
-                ⚠️ Năm {activeYear} đã khóa sổ. Bạn chỉ có thể xem, không thể thêm/sửa/xóa chứng từ.
-              </p>
+              <p className="text-amber-800 font-medium">⚠️ Năm {activeYear} đã khóa sổ. Bạn chỉ có thể xem, không thể thêm/sửa/xóa chứng từ.</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Year History Table */}
       <Card className="border-border shadow-lg">
         <CardHeader className="bg-primary/5 border-b border-border">
-          <CardTitle className="text-lg font-bold text-primary">
-            Lịch sử các năm
-          </CardTitle>
+          <CardTitle className="text-lg font-bold text-primary">Lịch sử các năm</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -170,30 +146,22 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {yearDataList.map(yd => {
-                const txs = getTransactionsForYear(yd.year);
-                const totalThu = txs.filter(t => t.type === 'thu').reduce((s, t) => s + t.amount, 0);
-                const totalChi = txs.filter(t => t.type === 'chi').reduce((s, t) => s + t.amount, 0);
-                const closing = yd.openingBalance + totalThu - totalChi;
+              {sortedYearData.map(yd => {
+                const closing = yd.openingBalance + (yd.closingBalance || 0);
                 return (
                   <TableRow key={yd.year} className={yd.year === activeYear ? 'bg-primary/5' : ''}>
                     <TableCell className="text-center font-bold">{yd.year}</TableCell>
                     <TableCell className="text-right">{fmt(yd.openingBalance)}</TableCell>
-                    <TableCell className="text-right text-green-600">{fmt(totalThu)}</TableCell>
-                    <TableCell className="text-right text-destructive">{fmt(totalChi)}</TableCell>
-                    <TableCell className="text-right font-bold">{fmt(closing)}</TableCell>
+                    <TableCell className="text-right text-green-600">-</TableCell>
+                    <TableCell className="text-right text-destructive">-</TableCell>
+                    <TableCell className="text-right font-bold">{fmt(yd.closingBalance || 0)}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant={yd.isClosed ? 'destructive' : 'default'} className="text-xs">
                         {yd.isClosed ? '🔒 Đã khóa' : '🔓 Đang mở'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSwitchYear(String(yd.year))}
-                        disabled={yd.year === activeYear}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleSwitchYear(String(yd.year))} disabled={yd.year === activeYear}>
                         {yd.year === activeYear ? 'Đang xem' : 'Xem'}
                       </Button>
                     </TableCell>
@@ -205,7 +173,6 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -214,17 +181,13 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
               <p>Bạn có chắc chắn muốn khóa sổ năm {activeYear}?</p>
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>Số dư cuối kỳ: <strong>{fmt(currentYearStats.closing)} đ</strong> sẽ được kết chuyển làm số dư đầu kỳ năm {activeYear + 1}.</li>
-                <li>Số chứng từ năm {activeYear + 1} sẽ được reset từ đầu (PT001, PC001...).</li>
                 <li>Sau khi khóa sổ, bạn không thể thêm/sửa/xóa chứng từ của năm {activeYear}.</li>
-                <li>Bạn vẫn có thể xem lại số liệu năm {activeYear} bằng cách chọn năm trong danh sách.</li>
               </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCloseYear} className="bg-amber-600 hover:bg-amber-700">
-              Xác nhận khóa sổ
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleCloseYear} className="bg-amber-600 hover:bg-amber-700">Xác nhận khóa sổ</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
