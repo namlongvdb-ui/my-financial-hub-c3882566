@@ -209,31 +209,30 @@ export function AdminPanel() {
     setGeneratingSignature(true);
     try {
       const { publicKey, privateKey } = await generateRSAKeyPair();
-      
-      // Encrypt private key with the provided password
       const encryptedPrivateKey = await encryptPrivateKey(privateKey, signaturePassword);
 
-      // Remove existing keys for this user first
-      await supabase.from('digital_signatures')
-        .delete()
-        .eq('user_id', signatureTarget.user_id);
+      // Delete existing keys
+      const { data: existingKeys } = await digitalSignaturesApi.get(signatureTarget.user_id);
+      if (existingKeys) {
+        for (const k of existingKeys) {
+          await digitalSignaturesApi.delete(k.id);
+        }
+      }
 
-      const { error } = await supabase.from('digital_signatures').insert({
-        user_id: signatureTarget.user_id,
-        public_key: publicKey,
-        created_by: user!.id,
-        is_active: true,
-        encrypted_private_key: encryptedPrivateKey,
+      const { error } = await digitalSignaturesApi.create({
+        userId: signatureTarget.user_id,
+        publicKey,
+        encryptedPrivateKey,
+        createdBy: user!.id,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
-      // Also store locally for convenience on this device
       storePrivateKey(signatureTarget.user_id, privateKey);
 
       toast({
         title: 'Đã tạo chữ ký số',
-        description: `Cặp khóa RSA đã được tạo cho ${signatureTarget.full_name}. Khóa bí mật đã được mã hóa và lưu trên server. Người dùng có thể ký trên mọi thiết bị bằng mật khẩu ký.`,
+        description: `Cặp khóa RSA đã được tạo cho ${signatureTarget.full_name}.`,
       });
 
       setSignatureDialogOpen(false);
