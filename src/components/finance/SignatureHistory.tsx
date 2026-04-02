@@ -55,7 +55,7 @@ export function SignatureHistory() {
       (profilesRes.data || []).forEach((p: any) => nameMap.set(p.user_id, p.full_name));
 
       const roleMap = new Map<string, string>();
-      rolesRes.data?.forEach(r => {
+      (rolesRes.data || []).forEach((r: any) => {
         if (!roleMap.has(r.user_id) || r.role === 'lanh_dao' || r.role === 'ke_toan') {
           roleMap.set(r.user_id, r.role);
         }
