@@ -122,18 +122,14 @@ export async function decryptPrivateKey(encryptedBase64: string, password: strin
 
 // Fetch encrypted private key from server and decrypt with password
 export async function getServerPrivateKey(userId: string, password: string): Promise<string | null> {
-  const { supabase } = await import('@/integrations/supabase/client');
-  const { data } = await supabase
-    .from('digital_signatures')
-    .select('encrypted_private_key')
-    .eq('user_id', userId)
-    .eq('is_active', true)
-    .single();
+  const { digitalSignaturesApi } = await import('@/lib/api-client');
+  const { data } = await digitalSignaturesApi.get(userId, true);
 
-  if (!data?.encrypted_private_key) return null;
+  const sig = data && data.length > 0 ? data[0] : null;
+  if (!sig?.encrypted_private_key) return null;
   
   try {
-    return await decryptPrivateKey(data.encrypted_private_key, password);
+    return await decryptPrivateKey(sig.encrypted_private_key, password);
   } catch {
     return null;
   }

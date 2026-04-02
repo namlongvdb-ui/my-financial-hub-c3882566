@@ -18,9 +18,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Convert username to email format for Supabase auth
-    const email = username.includes('@') ? username : `${username}@app.local`;
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(username, password);
 
     if (error) {
       toast({
