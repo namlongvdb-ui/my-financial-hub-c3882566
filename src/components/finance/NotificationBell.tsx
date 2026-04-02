@@ -40,33 +40,25 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
+    const { data } = await notificationsApi.getAll();
     
     if (!data) return;
 
     // Enrich notifications with current voucher status
     const voucherIds = [...new Set(
-      data.filter(n => n.related_voucher_id).map(n => n.related_voucher_id!)
+      data.filter((n: any) => n.related_voucher_id).map((n: any) => n.related_voucher_id!)
     )];
 
     let statusMap = new Map<string, string>();
     if (voucherIds.length > 0) {
-      const { data: vouchers } = await supabase
-        .from('pending_vouchers')
-        .select('voucher_id, status')
-        .in('voucher_id', voucherIds);
-      
-      if (vouchers) {
-        vouchers.forEach(v => statusMap.set(v.voucher_id, v.status));
+      const { data: allVouchers } = await pendingVouchersApi.getAll();
+      if (allVouchers) {
+        allVouchers.filter((v: any) => voucherIds.includes(v.voucher_id))
+          .forEach((v: any) => statusMap.set(v.voucher_id, v.status));
       }
     }
 
-    const enriched: Notification[] = data.map(n => ({
+    const enriched: Notification[] = data.map((n: any) => ({
       ...n,
       voucher_status: n.related_voucher_id
         ? statusMap.get(n.related_voucher_id) || 'unknown'
