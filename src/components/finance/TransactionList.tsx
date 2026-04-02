@@ -10,7 +10,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { getTransactions, deleteTransaction } from '@/lib/finance-store';
+import { useTransactions } from '@/hooks/useFinanceData';
 import { Transaction } from '@/types/finance';
 import { Search, Trash2, Pencil, FileText, X, ChevronDown, ChevronUp, List, Lock, Eye, CalendarIcon } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
@@ -50,13 +50,14 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const { user } = useAuth();
 
+  const { transactions, deleteTransaction } = useTransactions(undefined, type, refreshKey);
+
   const isVoucher = type === 'thu' || type === 'chi';
 
-  // Fetch approved/signed voucher IDs to prevent editing
   const fetchApprovedIds = useCallback(async () => {
     const { data } = await pendingVouchersApi.getAll();
     if (data) {
-      const approved = data.filter((v: any) => 
+      const approved = data.filter((v: any) =>
         v.voucher_type === type && ['signed', 'printed'].includes(v.status)
       );
       setApprovedVoucherIds(new Set(approved.map((v: any) => v.voucher_id)));
@@ -76,34 +77,22 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
     return tx.createdBy === user.id;
   };
 
-  const transactions = useMemo(() => {
-    return getTransactions().filter(t => t.type === type);
-  }, [type, refreshKey]);
-
   const filtered = useMemo(() => {
     let result = transactions;
-
-    // Date range filter
     if (dateFrom || dateTo) {
       result = result.filter(t => {
         const txDate = new Date(t.date);
-        if (dateFrom && dateTo) {
-          return isWithinInterval(txDate, { start: startOfDay(dateFrom), end: endOfDay(dateTo) });
-        }
+        if (dateFrom && dateTo) return isWithinInterval(txDate, { start: startOfDay(dateFrom), end: endOfDay(dateTo) });
         if (dateFrom) return txDate >= startOfDay(dateFrom);
         if (dateTo) return txDate <= endOfDay(dateTo);
         return true;
       });
     }
-
-    // Text search filter
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(t =>
-        t.voucherNo.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q) ||
-        t.personName.toLowerCase().includes(q) ||
-        t.department.toLowerCase().includes(q) ||
+        t.voucherNo.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) ||
+        t.personName.toLowerCase().includes(q) || t.department.toLowerCase().includes(q) ||
         t.amount.toString().includes(q)
       );
     }
@@ -112,28 +101,21 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
   const totalAmount = useMemo(() => filtered.reduce((s, t) => s + t.amount, 0), [filtered]);
 
-  const handleDelete = (tx: Transaction) => {
-    if (!canModify(tx)) {
-      toast.error('Bạn không có quyền xóa chứng từ này');
-      return;
-    }
-    deleteTransaction(tx.id);
+  const handleDelete = async (tx: Transaction) => {
+    if (!canModify(tx)) { toast.error('Bạn không có quyền xóa chứng từ này'); return; }
+    await deleteTransaction(tx.id);
     toast.success(`Đã xóa ${tx.voucherNo}`);
     onChanged?.();
   };
 
   const handleEdit = (tx: Transaction) => {
-    if (!canModify(tx)) {
-      toast.error('Bạn không có quyền sửa chứng từ này');
-      return;
-    }
+    if (!canModify(tx)) { toast.error('Bạn không có quyền sửa chứng từ này'); return; }
     onSelectForEdit?.(tx);
   };
 
   return (
     <>
     <div className="max-w-5xl mx-auto mt-8 no-print">
-      {/* Toggle button */}
       <button
         onClick={() => setIsOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-3 rounded-lg bg-card border border-border shadow-sm hover:bg-muted/40 transition-colors mb-0 group"
@@ -148,7 +130,6 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
       {isOpen && (
       <Card className="border-border shadow-sm overflow-hidden rounded-t-none border-t-0">
-        {/* Header */}
         <CardHeader className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
@@ -156,9 +137,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                 <FileText className="h-4.5 w-4.5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-base font-semibold text-foreground tracking-tight">
-                  {title}
-                </CardTitle>
+                <CardTitle className="text-base font-semibold text-foreground tracking-tight">{title}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {transactions.length} chứng từ
                   {filtered.length !== transactions.length && ` · ${filtered.length} kết quả`}
@@ -167,7 +146,6 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Date filter */}
               <div className="flex items-center gap-1">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -199,20 +177,11 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                 )}
               </div>
 
-              {/* Search */}
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Tìm số CT, nội dung, họ tên..."
-                  className="pl-9 pr-9 h-9 text-sm bg-muted/40 border-border focus:bg-card transition-colors"
-                />
+                <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm số CT, nội dung, họ tên..." className="pl-9 pr-9 h-9 text-sm bg-muted/40 border-border focus:bg-card transition-colors" />
                 {search && (
-                  <button
-                    onClick={() => setSearch('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -221,7 +190,6 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
           </div>
         </CardHeader>
 
-        {/* Content */}
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6">
@@ -256,33 +224,17 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                       const locked = isApproved(tx.voucherNo);
                       const editable = canModify(tx);
                       return (
-                        <TableRow
-                          key={tx.id}
-                          className={`group transition-colors border-b border-border/50 last:border-b-0 ${editable ? 'cursor-pointer hover:bg-primary/[0.03]' : 'cursor-default'}`}
-                          onClick={() => editable && handleEdit(tx)}
-                        >
+                        <TableRow key={tx.id} className={`group transition-colors border-b border-border/50 last:border-b-0 ${editable ? 'cursor-pointer hover:bg-primary/[0.03]' : 'cursor-default'}`} onClick={() => editable && handleEdit(tx)}>
                           <TableCell className="pl-6">
                             <div className="flex items-center gap-1.5">
                               {locked && <Lock className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0" />}
-                              <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">
-                                {tx.voucherNo}
-                              </Badge>
+                              <Badge variant="secondary" className="font-mono text-xs font-medium px-2 py-0.5 bg-primary/8 text-primary border-0">{tx.voucherNo}</Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground tabular-nums">
-                            {formatDate(tx.date)}
-                          </TableCell>
-                          <TableCell className="max-w-[280px]">
-                            <p className="text-sm text-foreground truncate leading-tight">{tx.description}</p>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-foreground/80">{tx.personName}</span>
-                          </TableCell>
-                          <TableCell className="text-right pr-4">
-                            <span className="text-sm font-semibold tabular-nums text-foreground">
-                              {formatCurrency(tx.amount)} ₫
-                            </span>
-                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground tabular-nums">{formatDate(tx.date)}</TableCell>
+                          <TableCell className="max-w-[280px]"><p className="text-sm text-foreground truncate leading-tight">{tx.description}</p></TableCell>
+                          <TableCell><span className="text-sm text-foreground/80">{tx.personName}</span></TableCell>
+                          <TableCell className="text-right pr-4"><span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(tx.amount)} ₫</span></TableCell>
                           {isVoucher && (
                             <TableCell onClick={e => e.stopPropagation()}>
                               <VoucherSignatureStatus transaction={tx} voucherType={type as 'thu' | 'chi'} key={`sig-${tx.id}-${sigRefreshKey}`} />
@@ -290,72 +242,45 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                           )}
                           {isVoucher && (
                             <TableCell onClick={e => e.stopPropagation()}>
-                              <SignVoucherButton
-                                transaction={tx}
-                                voucherType={type as 'thu' | 'chi'}
-                                onSigned={() => setSigRefreshKey(k => k + 1)}
-                              />
+                              <SignVoucherButton transaction={tx} voucherType={type as 'thu' | 'chi'} onSigned={() => setSigRefreshKey(k => k + 1)} />
                             </TableCell>
                           )}
                           <TableCell>
                             <div className="flex items-center gap-0.5">
-                              {/* Print preview button - always visible */}
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                    onClick={(e) => { e.stopPropagation(); setPreviewTx(tx); }}
-                                  >
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={(e) => { e.stopPropagation(); setPreviewTx(tx); }}>
                                     <Eye className="h-3.5 w-3.5" />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>Xem trước khi in</TooltipContent>
                               </Tooltip>
-
                               {locked ? (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">
-                                      Đã duyệt
-                                    </Badge>
+                                    <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-300 dark:border-green-700">Đã duyệt</Badge>
                                   </TooltipTrigger>
                                   <TooltipContent>Chứng từ đã được ký duyệt, không thể sửa/xóa</TooltipContent>
                                 </Tooltip>
                               ) : editable ? (
                                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                    onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}
-                                  >
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={(e) => { e.stopPropagation(); handleEdit(tx); }}>
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={(e) => e.stopPropagation()}>
                                         <Trash2 className="h-3.5 w-3.5" />
                                       </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Xóa {tx.voucherNo}?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Bạn có chắc muốn xóa phiếu <strong>{tx.voucherNo}</strong> — "{tx.description}"? Thao tác này không thể hoàn tác.
-                                        </AlertDialogDescription>
+                                        <AlertDialogDescription>Thao tác này không thể hoàn tác.</AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
                                         <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                          Xóa
-                                        </AlertDialogAction>
+                                        <AlertDialogAction onClick={() => handleDelete(tx)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Xóa</AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
                                   </AlertDialog>
@@ -369,18 +294,9 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
                   </TableBody>
                 </Table>
               </div>
-
-              {/* Footer summary */}
-              <div className="flex items-center justify-between px-6 py-3 bg-muted/20 border-t border-border">
-                <span className="text-xs text-muted-foreground">
-                  Hiển thị {filtered.length}/{transactions.length} chứng từ
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Tổng cộng:</span>
-                  <span className="text-sm font-bold text-foreground tabular-nums">
-                    {formatCurrency(totalAmount)} ₫
-                  </span>
-                </div>
+              <div className="px-6 py-3 bg-muted/20 border-t border-border flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{filtered.length} chứng từ</span>
+                <span className="text-sm font-semibold text-foreground">{formatCurrency(totalAmount)} ₫</span>
               </div>
             </>
           )}
@@ -389,42 +305,25 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
       )}
     </div>
 
-    {/* Print Preview Dialog */}
-    <Dialog open={!!previewTx} onOpenChange={open => { if (!open) setPreviewTx(null); }}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        {previewTx && (type === 'thu' || type === 'chi') && (
-          <PrintVoucher type={type} data={previewTx} />
+    {/* Print preview dialog */}
+    <Dialog open={!!previewTx} onOpenChange={(open) => { if (!open) setPreviewTx(null); }}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        {previewTx && (
+          <div>
+            <div className="flex justify-end mb-2 no-print">
+              <Button size="sm" onClick={() => window.print()}><Eye className="h-4 w-4 mr-1" /> In</Button>
+            </div>
+            {(type === 'thu' || type === 'chi') && (
+              <PrintVoucher type={type} data={{ date: previewTx.date, voucherNo: previewTx.voucherNo, amount: previewTx.amount, description: previewTx.description, personName: previewTx.personName, department: previewTx.department, accountCode: previewTx.accountCode, approver: previewTx.approver, attachments: previewTx.attachments }} />
+            )}
+            {type === 'tham-hoi' && (
+              <PrintVisitVoucher data={{ date: previewTx.date, visitorDepartment: previewTx.department, recipientName: previewTx.recipientName || previewTx.personName, reason: previewTx.reason || previewTx.description, amount: previewTx.amount, unionGroupName: previewTx.department }} />
+            )}
+            {type === 'de-nghi' && (
+              <PrintPaymentRequest data={{ date: previewTx.date, requestNo: '', requesterName: previewTx.personName, department: previewTx.department, content: previewTx.description, amount: previewTx.amount, times: previewTx.times || '', bankAccount: previewTx.bankAccount || '', bankAccountName: previewTx.bankAccountName || '', bankName: previewTx.bankName || '', attachments: String(previewTx.attachments || '') }} />
+            )}
+          </div>
         )}
-        {previewTx && type === 'tham-hoi' && (
-          <PrintVisitVoucher data={{
-            date: previewTx.date,
-            visitorDepartment: previewTx.department,
-            recipientName: previewTx.recipientName || previewTx.personName,
-            reason: previewTx.reason || previewTx.description,
-            amount: previewTx.amount,
-            unionGroupName: previewTx.department,
-          }} />
-        )}
-        {previewTx && type === 'de-nghi' && (
-          <PrintPaymentRequest data={{
-            date: previewTx.date,
-            requestNo: previewTx.voucherNo,
-            requesterName: previewTx.personName,
-            department: previewTx.department,
-            content: previewTx.description,
-            amount: previewTx.amount,
-            times: previewTx.times || '',
-            bankAccount: previewTx.bankAccount || '',
-            bankAccountName: previewTx.bankAccountName || '',
-            bankName: previewTx.bankName || '',
-            attachments: String(previewTx.attachments || 0),
-          }} />
-        )}
-        <div className="flex justify-end mt-4">
-          <Button onClick={() => { window.print(); }} variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-1" /> In chứng từ
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
     </>

@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { getTransactions, getOrgSettings, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
 import { ClipboardList, Printer, Download, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,14 +11,11 @@ import { EditTransactionDialog } from './EditTransactionDialog';
 import { exportDetailLedgerExcel } from '@/lib/export-utils';
 import { useAuth } from '@/hooks/useAuth';
 import { pendingVouchersApi } from '@/lib/api-client';
+import { useOrgSettings, useTransactions } from '@/hooks/useFinanceData';
+import { useEffect, useCallback } from 'react';
 
-function formatCurrency(n: number) {
-  return n.toLocaleString('vi-VN');
-}
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('vi-VN');
-}
+function formatCurrency(n: number) { return n.toLocaleString('vi-VN'); }
+function formatDate(d: string) { return new Date(d).toLocaleDateString('vi-VN'); }
 
 const typeLabels: Record<string, { label: string; class: string }> = {
   thu: { label: 'PT', class: 'bg-green-100 text-green-700' },
@@ -34,28 +30,28 @@ interface DetailLedgerProps {
 }
 
 export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
-  const settings = getOrgSettings();
-  const [localRefresh, setLocalRefresh] = useState(0);
+  const { settings } = useOrgSettings();
+  const { transactions, deleteTransaction, refetch } = useTransactions(undefined, undefined, refreshKey);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
   const { user } = useAuth();
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
 
   const rows = useMemo(() => {
-    return getTransactions().filter(tx => tx.type === 'thu' || tx.type === 'chi').sort((a, b) => a.date.localeCompare(b.date));
-  }, [refreshKey, localRefresh]);
+    return transactions.filter(tx => tx.type === 'thu' || tx.type === 'chi').sort((a, b) => a.date.localeCompare(b.date));
+  }, [transactions]);
 
-  // Fetch approved voucher IDs
-  useMemo(() => {
-    pendingVouchersApi.getAll().then(({ data }) => {
-      if (data) {
-        const approved = data.filter((v: any) =>
-          ['thu', 'chi'].includes(v.voucher_type) && ['signed', 'printed'].includes(v.status)
-        );
-        setApprovedIds(new Set(approved.map((v: any) => v.voucher_id)));
-      }
-    });
-  }, [refreshKey, localRefresh]);
+  const fetchApprovedIds = useCallback(async () => {
+    const { data } = await pendingVouchersApi.getAll();
+    if (data) {
+      const approved = data.filter((v: any) =>
+        ['thu', 'chi'].includes(v.voucher_type) && ['signed', 'printed'].includes(v.status)
+      );
+      setApprovedIds(new Set(approved.map((v: any) => v.voucher_id)));
+    }
+  }, []);
+
+  useEffect(() => { fetchApprovedIds(); }, [fetchApprovedIds, refreshKey]);
 
   const canModify = (tx: Transaction) => {
     if (approvedIds.has(tx.voucherNo)) return false;
@@ -65,13 +61,13 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
   };
 
   const handleRefresh = () => {
-    setLocalRefresh(k => k + 1);
+    refetch();
     onSaved?.();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTxId) return;
-    deleteTransaction(deleteTxId);
+    await deleteTransaction(deleteTxId);
     toast.success('Đã xóa chứng từ');
     setDeleteTxId(null);
     handleRefresh();
@@ -97,7 +93,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                 <TableRow className="bg-muted/50">
+                <TableRow className="bg-muted/50">
                   <TableHead className="text-center w-28">Ngày CT</TableHead>
                   <TableHead className="text-center w-20">Số CT</TableHead>
                   <TableHead className="text-right w-28">Số tiền</TableHead>
@@ -122,24 +118,20 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
                       <TableCell className="text-center">
                         <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${t.class}`}>{t.label}</span>
                       </TableCell>
-                      <TableCell className="text-center font-mono text-sm">
-                        {row.type === 'thu' ? '111' : (row.accountCode || '')}
-                      </TableCell>
-                      <TableCell className="text-center font-mono text-sm">
-                        {row.type === 'chi' ? '111' : (row.accountCode || '')}
-                      </TableCell>
+                      <TableCell className="text-center font-mono text-sm">{row.type === 'thu' ? '111' : (row.accountCode || '')}</TableCell>
+                      <TableCell className="text-center font-mono text-sm">{row.type === 'chi' ? '111' : (row.accountCode || '')}</TableCell>
                       <TableCell className="text-sm">{row.personName}</TableCell>
                       <TableCell className="text-sm truncate max-w-[10rem]">{row.department}</TableCell>
                       <TableCell>
                         {canModify(row) ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditTx(row)}>
-                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTxId(row.id)}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
-                        </div>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditTx(row)}>
+                              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTxId(row.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
                         ) : null}
                       </TableCell>
                     </TableRow>
@@ -147,9 +139,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
                 })}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
-                      Chưa có dữ liệu
-                    </TableCell>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">Chưa có dữ liệu</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -158,12 +148,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
         </CardContent>
       </Card>
 
-      <EditTransactionDialog
-        transaction={editTx}
-        open={!!editTx}
-        onOpenChange={open => { if (!open) setEditTx(null); }}
-        onSaved={handleRefresh}
-      />
+      <EditTransactionDialog transaction={editTx} open={!!editTx} onOpenChange={open => { if (!open) setEditTx(null); }} onSaved={handleRefresh} />
 
       <AlertDialog open={!!deleteTxId} onOpenChange={open => { if (!open) setDeleteTxId(null); }}>
         <AlertDialogContent>
