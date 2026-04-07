@@ -3,8 +3,9 @@
  * Thay thế Supabase client cho môi trường WAN
  */
 
-// Đọc từ biến môi trường, mặc định tới máy chủ 10.24.16.77
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://10.24.16.77:3001';
+// Khi server và frontend chạy chung cổng 3001, để trống để dùng cùng origin
+// Nếu dev riêng frontend, đặt VITE_API_URL=http://10.24.16.77:3001
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 function getToken(): string | null {
   return localStorage.getItem('auth_token');
