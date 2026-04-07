@@ -1,8 +1,10 @@
 /**
  * ============================================
- * NODE.JS WEB API SERVER
+ * NODE.JS WEB API SERVER + FRONTEND
  * Máy chủ: 10.24.16.77:3001
+ * Proxy mạng: hn.proxy.vdb:8080
  * ============================================
+ * Server phục vụ cả API và Frontend trên cùng cổng 3001
  * Các máy trạm kết nối qua WAN:
  * - Cao Bằng: 10.24.x.x
  * - Bắc Giang: 10.42.x.x
@@ -14,6 +16,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -55,9 +58,7 @@ pool.query('SELECT NOW()').then(() => {
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim());
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    // Allow all 10.x.x.x internal IPs
     if (/^https?:\/\/10\.\d+\.\d+\.\d+/.test(origin)) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     if (origin.includes('localhost')) return callback(null, true);
@@ -67,6 +68,13 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '10mb' }));
+
+// ============================================
+// PHỤC VỤ FRONTEND (file tĩnh từ thư mục dist)
+// Server và Frontend cùng chạy trên cổng 3001
+// ============================================
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
 
 // JWT Authentication middleware
 function authenticateToken(req, res, next) {
@@ -108,7 +116,6 @@ app.post('/api/auth/login', async (req, res) => {
     let { email, username, password } = req.body;
     if (!password) return res.status(400).json({ error: 'Thiếu mật khẩu' });
 
-    // Support username login
     const loginEmail = email || (username ? `${username}@app.local` : null);
     if (!loginEmail) return res.status(400).json({ error: 'Thiếu tên đăng nhập' });
 
@@ -126,36 +133,28 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid login credentials' });
     }
 
-    // Get roles
     const rolesResult = await pool.query('SELECT role FROM user_roles WHERE user_id = $1', [user.id]);
     const roles = rolesResult.rows.map(r => r.role);
 
-    // Get profile
     const profileResult = await pool.query(
       'SELECT full_name, email, username, assigned_area FROM profiles WHERE user_id = $1',
       [user.id]
     );
     const profile = profileResult.rows[0] || null;
 
-    // Generate JWT
     const token = jwt.sign(
       { id: user.id, email: user.email },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    res.json({
-      token,
-      user: { id: user.id, email: user.email },
-      roles,
-      profile,
-    });
+    res.json({ token, user: { id: user.id, email: user.email }, roles, profile });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/auth/me - Get current user info
+// GET /api/auth/me
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const [rolesResult, profileResult] = await Promise.all([
@@ -199,7 +198,6 @@ app.post('/api/setup-admin', async (req, res) => {
     const loginEmail = email || (username ? `${username}@app.local` : null);
     if (!loginEmail || !password) return res.status(400).json({ error: 'Username and password required' });
 
-    // Check if any admin exists
     const { rows: existingAdmins } = await pool.query(
       "SELECT ur.user_id FROM user_roles ur WHERE ur.role = 'admin'"
     );
@@ -236,7 +234,6 @@ app.post('/api/setup-admin', async (req, res) => {
 // ADMIN USER MANAGEMENT
 // ============================================
 
-// POST /api/admin/create-user
 app.post('/api/admin/create-user', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { username, password, fullName, role, assignedArea } = req.body;
@@ -267,7 +264,6 @@ app.post('/api/admin/create-user', authenticateToken, requireRole('admin'), asyn
   }
 });
 
-// POST /api/admin/manage-user
 app.post('/api/admin/manage-user', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { userId, action, fullName, role, assignedArea, isActive } = req.body;
@@ -296,7 +292,6 @@ app.post('/api/admin/manage-user', authenticateToken, requireRole('admin'), asyn
   }
 });
 
-// POST /api/admin/reset-password
 app.post('/api/admin/reset-password', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { userId, newPassword } = req.body;
@@ -308,7 +303,6 @@ app.post('/api/admin/reset-password', authenticateToken, requireRole('admin'), a
   }
 });
 
-// GET /api/admin/users
 app.get('/api/admin/users', authenticateToken, requireRole('admin'), async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -371,7 +365,6 @@ app.get('/api/user-roles', authenticateToken, async (req, res) => {
 // TRANSACTIONS (Chứng từ)
 // ============================================
 
-// GET /api/transactions?year=2025&type=thu
 app.get('/api/transactions', authenticateToken, async (req, res) => {
   try {
     const { year, type } = req.query;
@@ -384,22 +377,18 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
     query += ' ORDER BY date, voucher_no';
 
     const { rows } = await pool.query(query, params);
-    // Map DB columns to frontend format
-    const mapped = rows.map(mapTransactionFromDb);
-    res.json(mapped);
+    res.json(rows.map(mapTransactionFromDb));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/transactions
 app.post('/api/transactions', authenticateToken, async (req, res) => {
   try {
     const tx = req.body;
     const id = uuidv4();
     const year = new Date(tx.date).getFullYear();
 
-    // Check year closed
     const yearCheck = await pool.query('SELECT is_closed FROM year_data WHERE year = $1', [year]);
     if (yearCheck.rows[0]?.is_closed) {
       return res.status(400).json({ error: `Năm ${year} đã khóa sổ` });
@@ -424,7 +413,6 @@ app.post('/api/transactions', authenticateToken, async (req, res) => {
   }
 });
 
-// PUT /api/transactions/:id
 app.put('/api/transactions/:id', authenticateToken, async (req, res) => {
   try {
     const tx = req.body;
@@ -447,7 +435,6 @@ app.put('/api/transactions/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE /api/transactions/:id
 app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
   try {
     await pool.query('DELETE FROM transactions WHERE id = $1', [req.params.id]);
@@ -457,7 +444,6 @@ app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/transactions/next-voucher-no?type=thu&year=2025
 app.get('/api/transactions/next-voucher-no', authenticateToken, async (req, res) => {
   try {
     const { type, year } = req.query;
@@ -831,7 +817,6 @@ app.post('/api/year-data', authenticateToken, async (req, res) => {
 app.post('/api/year-data/close', authenticateToken, async (req, res) => {
   try {
     const { year } = req.body;
-    // Calculate closing balance
     const { rows: txRows } = await pool.query(
       `SELECT type, COALESCE(SUM(amount), 0) as total
        FROM transactions WHERE year = $1 GROUP BY type`,
@@ -847,7 +832,6 @@ app.post('/api/year-data/close', authenticateToken, async (req, res) => {
     });
     const closingBalance = openingBalance + totalThu - totalChi;
 
-    // Close year
     await pool.query(
       `INSERT INTO year_data (year, opening_balance, closing_balance, is_closed, closed_at)
        VALUES ($1, $2, $3, true, NOW())
@@ -855,7 +839,6 @@ app.post('/api/year-data/close', authenticateToken, async (req, res) => {
       [year, openingBalance, closingBalance]
     );
 
-    // Create next year
     const nextYear = year + 1;
     await pool.query(
       `INSERT INTO year_data (year, opening_balance) VALUES ($1, $2)
@@ -935,15 +918,28 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================
+// SPA FALLBACK - Mọi route không phải /api sẽ trả về index.html
+// ============================================
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(distPath, 'index.html'));
+  }
+});
+
+// ============================================
 // START SERVER
 // ============================================
 app.listen(PORT, HOST, () => {
   console.log(`
   ============================================
-  🚀 Finance API Server đang chạy
+  🚀 Finance Server đang chạy (API + Frontend)
   ============================================
   URL: http://${HOST}:${PORT}
   Server: http://10.24.16.77:${PORT}
+  Proxy mạng: hn.proxy.vdb:8080
+  
+  Truy cập chương trình:
+  http://10.24.16.77:${PORT}
   
   Các máy trạm kết nối:
   - Cao Bằng (10.24.x.x) → http://10.24.16.77:${PORT}
