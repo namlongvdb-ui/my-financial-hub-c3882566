@@ -219,7 +219,7 @@ INSERT INTO staff_settings (key, value) VALUES ('baseSalary', '2340000') ON CONF
 DO $$
 DECLARE
     admin_id UUID;
-    admin_hash TEXT := '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+    admin_hash TEXT := '$2b$10$Eg34iRgi.GrzZO5sl2ps8.nabaVj6KtvkhKUdPnlvTWMVUAlf4L7O';
 BEGIN
     -- Kiểm tra xem đã có admin chưa
     IF NOT EXISTS (SELECT 1 FROM user_roles WHERE role = 'admin') THEN
