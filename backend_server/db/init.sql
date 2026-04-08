@@ -213,9 +213,32 @@ INSERT INTO staff_settings (key, value) VALUES ('baseSalary', '2340000') ON CONF
 
 -- ============================================
 -- TẠO TÀI KHOẢN ADMIN MẶC ĐỊNH
--- Mật khẩu: admin123 (bcrypt hash)
+-- Username: admin / Mật khẩu: admin123
+-- bcrypt hash của "admin123" với salt rounds = 10
 -- ============================================
--- Sẽ được tạo qua API /api/setup-admin
+DO $$
+DECLARE
+    admin_id UUID;
+    admin_hash TEXT := '$2b$10$Eg34iRgi.GrzZO5sl2ps8.nabaVj6KtvkhKUdPnlvTWMVUAlf4L7O';
+BEGIN
+    -- Kiểm tra xem đã có admin chưa
+    IF NOT EXISTS (SELECT 1 FROM user_roles WHERE role = 'admin') THEN
+        admin_id := gen_random_uuid();
+        
+        INSERT INTO users (id, email, username, password_hash, is_active)
+        VALUES (admin_id, 'admin@app.local', 'admin', admin_hash, true);
+        
+        INSERT INTO profiles (user_id, full_name, email, username)
+        VALUES (admin_id, 'Administrator', 'admin@app.local', 'admin');
+        
+        INSERT INTO user_roles (user_id, role)
+        VALUES (admin_id, 'admin');
+        
+        RAISE NOTICE 'Tài khoản admin đã được tạo thành công!';
+    ELSE
+        RAISE NOTICE 'Admin đã tồn tại, bỏ qua.';
+    END IF;
+END $$;
 
 -- ============================================
 -- FUNCTION: has_role
