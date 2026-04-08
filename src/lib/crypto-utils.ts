@@ -1,123 +1,102 @@
-// RSA key pair generation and digital signature utilities using Web Crypto API
+// RSA key pair generation and digital signature utilities using node-forge
+// (works on both HTTP and HTTPS, unlike Web Crypto API)
+
+import forge from 'node-forge';
 
 export async function generateRSAKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
-  const keyPair = await window.crypto.subtle.generateKey(
-    {
-      name: 'RSASSA-PKCS1-v1_5',
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: 'SHA-256',
-    },
-    true, // extractable
-    ['sign', 'verify']
-  );
-
-  const publicKeyBuffer = await window.crypto.subtle.exportKey('spki', keyPair.publicKey);
-  const privateKeyBuffer = await window.crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-
-  const publicKey = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)));
-  const privateKey = btoa(String.fromCharCode(...new Uint8Array(privateKeyBuffer)));
-
-  return { publicKey, privateKey };
+  return new Promise((resolve, reject) => {
+    forge.pki.rsa.generateKeyPair({ bits: 2048, workers: -1 }, (err, keypair) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey);
+      const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey);
+      
+      // Store as base64 of PEM for consistency
+      const publicKey = btoa(publicKeyPem);
+      const privateKey = btoa(privateKeyPem);
+      
+      resolve({ publicKey, privateKey });
+    });
+  });
 }
 
 export async function hashData(data: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);
-  const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer);
-  return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+  const md = forge.md.sha256.create();
+  md.update(data, 'utf8');
+  return btoa(md.digest().data);
 }
 
 export async function signData(privateKeyBase64: string, data: string): Promise<string> {
-  const privateKeyBuffer = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
+  const privateKeyPem = atob(privateKeyBase64);
+  const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
   
-  const privateKey = await window.crypto.subtle.importKey(
-    'pkcs8',
-    privateKeyBuffer,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);
-  const signatureBuffer = await window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKey, dataBuffer);
-
-  return btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+  const md = forge.md.sha256.create();
+  md.update(data, 'utf8');
+  
+  const signature = privateKey.sign(md);
+  return btoa(signature);
 }
 
 export async function verifySignature(publicKeyBase64: string, signature: string, data: string): Promise<boolean> {
   try {
-    const publicKeyBuffer = Uint8Array.from(atob(publicKeyBase64), c => c.charCodeAt(0));
-    const signatureBuffer = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
-
-    const publicKey = await window.crypto.subtle.importKey(
-      'spki',
-      publicKeyBuffer,
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
-
-    const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(data);
-
-    return await window.crypto.subtle.verify('RSASSA-PKCS1-v1_5', publicKey, signatureBuffer, dataBuffer);
+    const publicKeyPem = atob(publicKeyBase64);
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+    
+    const md = forge.md.sha256.create();
+    md.update(data, 'utf8');
+    
+    const sigBytes = atob(signature);
+    return publicKey.verify(md.digest().bytes(), sigBytes);
   } catch {
     return false;
   }
 }
 
 // AES-GCM encryption of private key using a password
-async function deriveKeyFromPassword(password: string, salt: Uint8Array): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
-  const keyMaterial = await window.crypto.subtle.importKey(
-    'raw',
-    passwordBuffer.buffer as ArrayBuffer,
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-  return window.crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: salt.buffer as ArrayBuffer, iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
-
 export async function encryptPrivateKey(privateKeyBase64: string, password: string): Promise<string> {
-  const salt = window.crypto.getRandomValues(new Uint8Array(16));
-  const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const aesKey = await deriveKeyFromPassword(password, salt);
-  const encoder = new TextEncoder();
-  const encrypted = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    aesKey,
-    encoder.encode(privateKeyBase64)
-  );
-  // Format: salt(16) + iv(12) + ciphertext → base64
-  const combined = new Uint8Array(salt.length + iv.length + new Uint8Array(encrypted).length);
-  combined.set(salt, 0);
-  combined.set(iv, salt.length);
-  combined.set(new Uint8Array(encrypted), salt.length + iv.length);
-  return btoa(String.fromCharCode(...combined));
+  const salt = forge.random.getBytesSync(16);
+  const iv = forge.random.getBytesSync(12);
+  
+  // Derive key from password using PBKDF2
+  const key = forge.pkcs5.pbkdf2(password, salt, 100000, 32, forge.md.sha256.create());
+  
+  // Encrypt using AES-GCM
+  const cipher = forge.cipher.createCipher('AES-GCM', key);
+  cipher.start({ iv, tagLength: 128 });
+  cipher.update(forge.util.createBuffer(privateKeyBase64, 'utf8'));
+  cipher.finish();
+  
+  const encrypted = cipher.output.data;
+  const tag = cipher.mode.tag.data;
+  
+  // Format: salt(16) + iv(12) + tag(16) + ciphertext → base64
+  const combined = salt + iv + tag + encrypted;
+  return btoa(combined);
 }
 
 export async function decryptPrivateKey(encryptedBase64: string, password: string): Promise<string> {
-  const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  const combined = atob(encryptedBase64);
   const salt = combined.slice(0, 16);
   const iv = combined.slice(16, 28);
-  const ciphertext = combined.slice(28);
-  const aesKey = await deriveKeyFromPassword(password, salt);
-  const decrypted = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
-    aesKey,
-    ciphertext
-  );
-  return new TextDecoder().decode(decrypted);
+  const tag = combined.slice(28, 44);
+  const ciphertext = combined.slice(44);
+  
+  // Derive same key from password
+  const key = forge.pkcs5.pbkdf2(password, salt, 100000, 32, forge.md.sha256.create());
+  
+  // Decrypt using AES-GCM
+  const decipher = forge.cipher.createDecipher('AES-GCM', key);
+  decipher.start({ iv, tag: forge.util.createBuffer(tag) });
+  decipher.update(forge.util.createBuffer(ciphertext));
+  const pass = decipher.finish();
+  
+  if (!pass) {
+    throw new Error('Giải mã thất bại - mật khẩu không đúng');
+  }
+  
+  return decipher.output.toString();
 }
 
 // Fetch encrypted private key from server and decrypt with password
