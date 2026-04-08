@@ -35,7 +35,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-key';
 const pool = new Pool({
   host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'union_finance',
+  database: process.env.DB_NAME || 'tai_chinh_cong_doan',
   user: process.env.DB_USER || 'finance_admin',
   password: process.env.DB_PASSWORD || '',
   max: 20,
@@ -116,12 +116,14 @@ app.post('/api/auth/login', async (req, res) => {
     let { email, username, password } = req.body;
     if (!password) return res.status(400).json({ error: 'Thiếu mật khẩu' });
 
-    const loginEmail = email || (username ? `${username}@app.local` : null);
-    if (!loginEmail) return res.status(400).json({ error: 'Thiếu tên đăng nhập' });
+    // Hỗ trợ đăng nhập bằng username hoặc email
+    const loginInput = username || email;
+    if (!loginInput) return res.status(400).json({ error: 'Thiếu tên đăng nhập' });
 
+    // Tìm user theo username trước, nếu không có thì tìm theo email
     const { rows } = await pool.query(
-      'SELECT * FROM users WHERE email = $1 AND is_active = true',
-      [loginEmail]
+      'SELECT * FROM users WHERE (username = $1 OR email = $1 OR email = $2) AND is_active = true',
+      [loginInput, loginInput.includes('@') ? loginInput : `${loginInput}@app.local`]
     );
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Invalid login credentials' });

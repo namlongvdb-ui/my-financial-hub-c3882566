@@ -4,7 +4,7 @@
 -- ============================================
 
 -- Tạo database (chạy với quyền postgres)
--- CREATE DATABASE union_finance ENCODING 'UTF8' LC_COLLATE 'vi_VN.UTF-8' LC_CTYPE 'vi_VN.UTF-8';
+-- CREATE DATABASE tai_chinh_cong_doan ENCODING 'UTF8' LC_COLLATE 'vi_VN.UTF-8' LC_CTYPE 'vi_VN.UTF-8';
 
 -- Tạo user
 -- CREATE USER finance_admin WITH PASSWORD 'YOUR_STRONG_PASSWORD';
