@@ -55,7 +55,7 @@ async function request<T = any>(
 // ============================================
 export const authApi = {
   async login(username: string, password: string) {
-    const email = username.includes('@') ? username : `${username}@app.local`;
+    // Gửi trực tiếp username, server tự xử lý tìm kiếm
     const result = await request<{
       token: string;
       user: { id: string; email: string };
@@ -63,7 +63,7 @@ export const authApi = {
       profile: { full_name: string; email: string | null; username: string | null; assigned_area: string | null } | null;
     }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     });
 
     if (result.data?.token) {

@@ -9,7 +9,7 @@ set TIMESTAMP=%TIMESTAMP: =0%
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 
 echo Đang backup database...
-"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U finance_admin -h 127.0.0.1 -d union_finance -F c -f "%BACKUP_DIR%\finance_%TIMESTAMP%.backup"
+"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U finance_admin -h 127.0.0.1 -d tai_chinh_cong_doan -F c -f "%BACKUP_DIR%\finance_%TIMESTAMP%.backup"
 
 if %errorlevel% equ 0 (
     echo ✅ Backup thành công: finance_%TIMESTAMP%.backup
