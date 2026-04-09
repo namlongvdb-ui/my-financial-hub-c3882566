@@ -772,10 +772,12 @@ app.put('/api/org-settings', authenticateToken, async (req, res) => {
   try {
     const settings = req.body;
     for (const [key, value] of Object.entries(settings)) {
+      // value is already a JS object/array, pass as JSON string for JSONB column
+      const jsonValue = typeof value === 'string' ? JSON.stringify(value) : JSON.stringify(value);
       await pool.query(
-        `INSERT INTO org_settings (key, value) VALUES ($1, $2)
-         ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
-        [key, JSON.stringify(value)]
+        `INSERT INTO org_settings (key, value) VALUES ($1, $2::jsonb)
+         ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, updated_at = NOW()`,
+        [key, jsonValue]
       );
     }
     res.json({ success: true });

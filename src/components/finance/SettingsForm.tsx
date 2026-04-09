@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,13 +93,15 @@ export function SettingsForm({ onSaved }: SettingsFormProps) {
   const [form, setForm] = useState<OrgSettings>(settings);
 
   // Sync form when settings load from API
-  useState(() => { setForm(settings); });
-  // Update form when settings change (after async load)
-  const [initialized, setInitialized] = useState(false);
-  if (!initialized && settings.orgName) {
-    setForm(settings);
-    setInitialized(true);
-  }
+  useEffect(() => {
+    if (settings.orgName) {
+      setForm(prev => ({
+        ...settings,
+        unionGroups: settings.unionGroups?.length ? settings.unionGroups : prev.unionGroups,
+        areaRepresentatives: settings.areaRepresentatives?.length ? settings.areaRepresentatives : prev.areaRepresentatives,
+      }));
+    }
+  }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
